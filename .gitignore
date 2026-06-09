@@ -1,0 +1,101 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Flutter/Dart/Pub
+# By default, the following files are generated and should be ignored.
+
+# Local configuration
+local.properties
+
+# Gradle
+.gradle/
+/android/.gradle/
+
+# Built application files
+build/
+**/build/
+
+# iOS
+/ios/Flutter/.last_build_id
+/ios/Pods/
+/ios/Runner/GeneratedPluginRegistrant.*
+/ios/Flutter/Flutter.framework/
+/ios/Flutter/Flutter.podspec
+
+# macOS
+/macos/Flutter/Flutter.framework/
+/macos/Flutter/ephemeral/
+
+# Windows
+/windows/flutter/ephemeral/
+
+# Generated plugin registrant
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Misc
+.DS_Store
+Thumbs.db
+
+# IDEs and editors
+*.iml
+.idea/
+# VS Code settings (uncomment if you want to include them in repo)
+#.vscode/
+
+# Pub
+.packages
+
+# Coverage
+coverage/
+
+# Others
+*.class
+*.log
+*.pyc
+*.swp
