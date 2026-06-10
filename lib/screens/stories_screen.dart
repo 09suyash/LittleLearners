@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/story_data.dart';
 import '../utils/tts_service.dart';
 import '../utils/badge_service.dart';
+import '../utils/story_repository.dart';
 
 class StoriesScreen extends StatefulWidget {
   const StoriesScreen({super.key});
@@ -14,6 +15,7 @@ class StoriesScreen extends StatefulWidget {
 class _StoriesScreenState extends State<StoriesScreen> {
   final TtsService _tts = TtsService();
   final BadgeService _bs = BadgeService();
+  final _repo = StoryRepository();
   String _lang = 'en';
   String _searchQuery = '';
   StoryData? _openStory;
@@ -22,6 +24,8 @@ class _StoriesScreenState extends State<StoriesScreen> {
   double _speed = 1.0;
   bool _autoAdvance = false;
   final Set<int> _done = {};
+  List<StoryData> _stories = [];
+  bool _storiesLoading = true;
 
   // Word highlight: list of words with their char positions
   List<_Word> _words = [];
@@ -30,6 +34,8 @@ class _StoriesScreenState extends State<StoriesScreen> {
   @override
   void initState() {
     super.initState();
+    _repo.addListener(_onRepoChanged);
+    _loadStories();
     _loadDone();
     _tts.setCompletionHandler(_onSpeechDone);
     _tts.setProgressHandler((text, start, end, word) {
@@ -37,6 +43,17 @@ class _StoriesScreenState extends State<StoriesScreen> {
       final idx = _words.indexWhere((w) => w.start <= start && start < w.end);
       if (idx >= 0 && mounted) setState(() => _highlightIdx = idx);
     });
+  }
+
+  void _onRepoChanged() => _loadStories();
+
+  Future<void> _loadStories() async {
+    try {
+      final list = await _repo.getAll();
+      if (mounted) setState(() { _stories = list; _storiesLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _storiesLoading = false; });
+    }
   }
 
   Future<void> _loadDone() async {
@@ -57,6 +74,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
 
   @override
   void dispose() {
+    _repo.removeListener(_onRepoChanged);
     _tts.dispose();
     super.dispose();
   }
@@ -110,7 +128,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
       _bs.award('story_first');
       if (_lang == 'hi') _bs.award('story_hindi');
       if (_done.length >= 4) _bs.award('story_half');
-      if (_done.length >= 8) _bs.award('story_all');
+      if (_done.length >= _stories.length) _bs.award('story_all');
       _checkExplorerBadge();
     }
   }
@@ -123,19 +141,19 @@ class _StoriesScreenState extends State<StoriesScreen> {
   }
 
   StoryData? _getNextStory() {
-    if (_openStory == null) return null;
-    final idx = stories.indexOf(_openStory!);
-    for (int i = 1; i <= stories.length; i++) {
-      final s = stories[(idx + i) % stories.length];
+    if (_openStory == null || _stories.isEmpty) return null;
+    final idx = _stories.indexOf(_openStory!);
+    for (int i = 1; i <= _stories.length; i++) {
+      final s = _stories[(idx + i) % _stories.length];
       if (!_done.contains(s.id)) return s;
     }
-    return stories[(idx + 1) % stories.length];
+    return _stories[(idx + 1) % _stories.length];
   }
 
   List<StoryData> get _filteredStories {
-    if (_searchQuery.isEmpty) return stories;
+    if (_searchQuery.isEmpty) return _stories;
     final q = _searchQuery.toLowerCase();
-    return stories.where((s) {
+    return _stories.where((s) {
       final v = s.forLang(_lang);
       return v.title.toLowerCase().contains(q) || v.tag.toLowerCase().contains(q);
     }).toList();
@@ -148,11 +166,33 @@ class _StoriesScreenState extends State<StoriesScreen> {
 
   // ── Story Grid ──
   Widget _buildGrid() {
+    if (_storiesLoading) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFFc4855a)));
+    }
     final filtered = _filteredStories;
     return Container(
-      color: const Color(0xFFfdf6ec),
-      child: SafeArea(
-        child: Column(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFfff4e6), Color(0xFFffe8cc), Color(0xFFfff8f2)],
+          stops: [0.0, 0.55, 1.0],
+        ),
+      ),
+      child: Stack(children: [
+        // Decorative blobs
+        Positioned(top: -30, right: -30,
+            child: Opacity(opacity: 0.07,
+                child: const Text('📚', style: TextStyle(fontSize: 160)))),
+        Positioned(top: 220, left: -25,
+            child: Opacity(opacity: 0.05,
+                child: const Text('⭐', style: TextStyle(fontSize: 110)))),
+        Positioned(bottom: 120, right: -20,
+            child: Opacity(opacity: 0.05,
+                child: const Text('🌟', style: TextStyle(fontSize: 120)))),
+        // Main content — Positioned.fill gives SafeArea tight constraints
+        Positioned.fill(child: SafeArea(
+          child: Column(
           children: [
             // Header
             Padding(
@@ -162,7 +202,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                   const Text('📚 Moral Stories',
                       style: TextStyle(fontFamily: 'serif', fontSize: 26, fontWeight: FontWeight.w700, color: Color(0xFF7B3F00))),
                   const SizedBox(height: 4),
-                  Text('8 stories • Hindi & English voice narration',
+                  Text('${_stories.length} stories • Hindi & English voice narration',
                       style: TextStyle(color: const Color(0xFFa08060).withAlpha(204), fontSize: 13)),
                   const SizedBox(height: 16),
                   // Language toggle
@@ -229,9 +269,9 @@ class _StoriesScreenState extends State<StoriesScreen> {
                     ),
             ),
           ],
-        ),
-      ),
-    );
+        ))),  // Column, SafeArea, Positioned.fill
+      ]),    // Stack children
+    );       // Container
   }
 
   Widget _langBtn(String label, String value) {
@@ -287,7 +327,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: const Color(0xFFecdcc8), width: 1.5),
                   ),
-                  child: Center(child: Text(s.icon, style: const TextStyle(fontSize: 22))),
+                  child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.icon, style: const TextStyle(fontSize: 28)))),
                 ),
                 const SizedBox(width: 13),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

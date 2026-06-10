@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/badge_service.dart';
 import '../utils/daily_challenge_service.dart';
+import '../utils/story_repository.dart';
+import 'manage_stories_screen.dart';
 
 // ── Screen ─────────────────────────────────────────────────────────────
 class ParentDashboardScreen extends StatefulWidget {
@@ -28,6 +30,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   int _mathTotal    = 10;
   int _blitzBest    = 0;
   int _storiesDone  = 0;
+  int _totalStories = 8;
   int _dcStreak     = 0;
   int _badgeCount   = 0;
   Set<String> _earned = {};
@@ -95,16 +98,18 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     final p = await SharedPreferences.getInstance();
     await BadgeService().load();
     final streak = await DailyChallengeService().getStreak();
+    final allStories = await StoryRepository().getAll();
     if (!mounted) return;
     setState(() {
-      _abcLearned  = p.getInt('abc_learned') ?? 0;
-      _mathBest    = p.getInt('math_best') ?? -1;
-      _mathTotal   = p.getInt('math_best_total') ?? 10;
-      _blitzBest   = p.getInt('blitz_best') ?? 0;
-      _storiesDone = p.getStringList('stories_done')?.length ?? 0;
-      _dcStreak    = streak;
-      _earned      = BadgeService().earned;
-      _badgeCount  = _earned.length;
+      _abcLearned    = p.getInt('abc_learned') ?? 0;
+      _mathBest      = p.getInt('math_best') ?? -1;
+      _mathTotal     = p.getInt('math_best_total') ?? 10;
+      _blitzBest     = p.getInt('blitz_best') ?? 0;
+      _storiesDone   = p.getStringList('stories_done')?.length ?? 0;
+      _totalStories  = allStories.length;
+      _dcStreak      = streak;
+      _earned        = BadgeService().earned;
+      _badgeCount    = _earned.length;
     });
   }
 
@@ -273,7 +278,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             _statCard('🔤', 'ABC', '$_abcLearned / 26\nLetters learned', _abcLearned / 26),
             _statCard('🔢', 'Math Quiz',
                 _mathBest >= 0 ? '$_mathBest / $_mathTotal\nBest score' : 'Not played yet', _mathBest >= 0 ? _mathBest / _mathTotal : 0),
-            _statCard('📚', 'Stories', '$_storiesDone / 8\nCompleted', _storiesDone / 8),
+            _statCard('📚', 'Stories', '$_storiesDone / $_totalStories\nCompleted', _totalStories > 0 ? _storiesDone / _totalStories : 0),
           ]),
           _section('⚡ Daily Challenge', [
             _statCard('🔥', 'Streak', '$_dcStreak days', _dcStreak > 0 ? 1.0 : 0),
@@ -288,6 +293,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             _badgeCard('🧩', 'Puzzle',    'puzzle_first', 'puzzle_fast', 'Speed solver'),
             _badgeCard('🎵', 'Rhymes',    'rhyme_first',  'rhyme_all',   'All 5'),
           ]),
+          const SizedBox(height: 16),
+          _contentSection(),
           const SizedBox(height: 16),
           _pinActions(),
         ]),
@@ -411,6 +418,49 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             )),
       ]),
     );
+  }
+
+  Widget _contentSection() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Text('📖 CONTENT',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                color: Colors.white.withAlpha(130), letterSpacing: 0.8)),
+      ),
+      GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ManageStoriesScreen()),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white.withAlpha(14),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withAlpha(26)),
+          ),
+          child: Row(children: [
+            Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFFc4855a).withAlpha(40),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Center(child: Text('📚', style: TextStyle(fontSize: 16))),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Manage Stories',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+              Text('Add, edit or remove stories',
+                  style: TextStyle(fontSize: 11, color: Colors.white.withAlpha(120))),
+            ])),
+            Icon(Icons.chevron_right, color: Colors.white.withAlpha(80), size: 20),
+          ]),
+        ),
+      ),
+    ]);
   }
 
   Widget _pinActions() {
