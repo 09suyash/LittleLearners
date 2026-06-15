@@ -75,9 +75,11 @@ class TtsService {
 
   Future<void> stop() async {
     try {
-      await _tts.stop();
+      // Clear state and queue first so new speak() calls added after this
+      // are not wiped by a delayed _queue.clear().
       _isSpeaking = false;
       _queue.clear();
+      await _tts.stop();
     } catch (_) {}
   }
 

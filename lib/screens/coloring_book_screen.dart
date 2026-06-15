@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../utils/badge_service.dart';
 import '../utils/fx.dart';
+import '../utils/sound_service.dart';
+import '../utils/app_state.dart';
 
 // ── Palette ────────────────────────────────────────────────────────────
 const List<Color> _palette = [
@@ -163,12 +165,22 @@ class ColoringBookScreen extends StatefulWidget {
 }
 
 class _ColoringBookScreenState extends State<ColoringBookScreen> {
-  final _bs = BadgeService();
+  final _bs  = BadgeService();
+  final _sfx = SoundService();
   late final List<_Scene> _scenes;
-  int   _sceneIdx = 0;
-  Color _pick = const Color(0xFFFF6B6B);
-  bool  _showConfetti = false;
-  Size? _lastSize;
+  int    _sceneIdx = 0;
+  Color  _pick = const Color(0xFFFF6B6B);
+  bool   _showConfetti = false;
+  Size?  _lastSize;
+  String _filter = 'all'; // 'all' | 'todo' | 'done'
+
+  List<int> get _filteredIndices {
+    switch (_filter) {
+      case 'todo': return [for (int i = 0; i < _scenes.length; i++) if (!_scenes[i].completed) i];
+      case 'done': return [for (int i = 0; i < _scenes.length; i++) if (_scenes[i].completed) i];
+      default:     return List.generate(_scenes.length, (i) => i);
+    }
+  }
 
   @override
   void initState() {
@@ -178,14 +190,20 @@ class _ColoringBookScreenState extends State<ColoringBookScreen> {
 
   _Scene get _scene => _scenes[_sceneIdx];
 
-  void _onTap(Offset pt) {
+  Future<void> _onTap(Offset pt) async {
     final reg = _scene.hit(pt);
     if (reg == null) return;
     setState(() => reg.fill = _pick);
-    _bs.award('color_first');
+    _sfx.play(SoundType.tap);
+    await awardWithToast(context, _bs, 'color_first', stars: 10);
     if (!_scene.completed && _scene.allColored) {
       setState(() { _scene.completed = true; _showConfetti = true; });
-      _bs.award('color_scene');
+      _sfx.play(SoundType.win);
+      await AppState.addStars(10);
+      if (mounted) {
+        await Future.delayed(const Duration(milliseconds: 350));
+        if (mounted) await awardWithToast(context, _bs, 'color_scene');
+      }
     }
   }
 
@@ -198,6 +216,7 @@ class _ColoringBookScreenState extends State<ColoringBookScreen> {
   Widget build(BuildContext context) {
     return Stack(children: [
       _buildMain(),
+      MascotCorner(celebrating: _showConfetti),
       ConfettiOverlay(trigger: _showConfetti),
     ]);
   }
@@ -214,6 +233,8 @@ class _ColoringBookScreenState extends State<ColoringBookScreen> {
         child: Column(children: [
           _header(),
           const SizedBox(height: 8),
+          _filterRow(),
+          const SizedBox(height: 6),
           _scenePicker(),
           const SizedBox(height: 8),
           Expanded(child: _canvas()),
@@ -259,18 +280,75 @@ class _ColoringBookScreenState extends State<ColoringBookScreen> {
     );
   }
 
+  Widget _filterRow() {
+    const filters = [('all', 'All'), ('todo', 'To Do'), ('done', 'Done ✅')];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Row(children: [
+        for (final (key, label) in filters) ...[
+          GestureDetector(
+            onTap: () {
+              if (_filter == key) return;
+              final indices = key == 'all'
+                  ? List.generate(_scenes.length, (i) => i)
+                  : key == 'todo'
+                      ? [for (int i = 0; i < _scenes.length; i++) if (!_scenes[i].completed) i]
+                      : [for (int i = 0; i < _scenes.length; i++) if (_scenes[i].completed) i];
+              setState(() {
+                _filter = key;
+                if (indices.isNotEmpty && !indices.contains(_sceneIdx)) {
+                  _sceneIdx = indices.first;
+                  _showConfetti = false;
+                  _lastSize = null;
+                }
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: _filter == key ? const Color(0xFFFFD93D) : Colors.white.withAlpha(18),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: _filter == key ? const Color(0xFF1a0533) : Colors.white70,
+                  )),
+            ),
+          ),
+          if (key != 'done') const SizedBox(width: 8),
+        ],
+      ]),
+    );
+  }
+
   Widget _scenePicker() {
+    final indices = _filteredIndices;
+    if (indices.isEmpty) {
+      return SizedBox(
+        height: 44,
+        child: Center(
+          child: Text(
+            _filter == 'done' ? 'No scenes completed yet — start coloring!' : 'All scenes completed! 🎉',
+            style: const TextStyle(fontSize: 12, color: Colors.white60, fontWeight: FontWeight.w600),
+          ),
+        ),
+      );
+    }
     return SizedBox(
       height: 44,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         separatorBuilder: (_, s) => const SizedBox(width: 8),
-        itemCount: _scenes.length,
+        itemCount: indices.length,
         itemBuilder: (_, i) {
-          final sel = i == _sceneIdx;
+          final sceneI = indices[i];
+          final sel = sceneI == _sceneIdx;
           return GestureDetector(
-            onTap: () => _switchScene(i),
+            onTap: () => _switchScene(sceneI),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -283,13 +361,13 @@ class _ColoringBookScreenState extends State<ColoringBookScreen> {
                 ),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(_scenes[i].emoji, style: const TextStyle(fontSize: 16)),
+                Text(_scenes[sceneI].emoji, style: const TextStyle(fontSize: 16)),
                 const SizedBox(width: 5),
-                Text(_scenes[i].name,
+                Text(_scenes[sceneI].name,
                     style: TextStyle(
                         fontSize: 11, fontWeight: FontWeight.w700,
                         color: sel ? Colors.white : Colors.white60)),
-                if (_scenes[i].completed) ...[
+                if (_scenes[sceneI].completed) ...[
                   const SizedBox(width: 4),
                   const Text('✅', style: TextStyle(fontSize: 10)),
                 ],

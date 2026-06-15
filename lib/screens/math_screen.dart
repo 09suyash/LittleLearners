@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/tts_service.dart';
 import '../utils/fx.dart';
 import '../utils/badge_service.dart';
+import '../utils/sound_service.dart';
+import '../utils/app_state.dart';
 
 enum MathView { modeSelect, settings, quiz, blitz, result }
 enum MathMode { practice, tables, blitz }
@@ -20,6 +22,7 @@ class MathScreen extends StatefulWidget {
 class _MathScreenState extends State<MathScreen> {
   final TtsService _tts = TtsService();
   final BadgeService _bs = BadgeService();
+  final SoundService _sfx = SoundService();
   MathView _view = MathView.modeSelect;
   MathMode _mode = MathMode.practice;
 
@@ -152,8 +155,14 @@ class _MathScreenState extends State<MathScreen> {
     setState(() {
       _chosenIdx = choiceIdx;
       _answered = true;
-      if (correct) { _score++; _streak++; if (_streak >= 5) _bs.award('math_streak5'); } else { _streak = 0; }
+      if (correct) { _score++; _streak++; } else { _streak = 0; }
     });
+    if (correct) {
+      _sfx.play(SoundType.correct);
+      if (_streak >= 5) awardWithToast(context, _bs, 'math_streak5');
+    } else {
+      _sfx.play(SoundType.wrong);
+    }
     _tts.speak(correct ? 'Correct!' : choiceIdx < 0 ? "Time's up!" : 'The answer was ${q.answer}');
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted || _view != MathView.quiz) return;
@@ -166,11 +175,12 @@ class _MathScreenState extends State<MathScreen> {
     });
   }
 
-  void _finishQuiz() {
+  Future<void> _finishQuiz() async {
     final pct = (_score / _questions.length * 100).round();
     _lb.add(_LbEntry(name: _playerName.isEmpty ? 'Player' : _playerName, score: _score, total: _questions.length));
     _lb.sort((a, b) => b.score - a.score);
     if (_lb.length > 5) _lb.length = 5;
+    _sfx.play(SoundType.win);
     _tts.speak('Game over! You got $_score points.');
     SharedPreferences.getInstance().then((p) {
       final prev = p.getInt('math_best') ?? -1;
@@ -179,10 +189,12 @@ class _MathScreenState extends State<MathScreen> {
         p.setInt('math_best_total', _questions.length);
       }
     });
-    _bs.award('math_first');
-    if (pct == 100) _bs.award('math_perfect');
-    _checkExplorerBadge();
     setState(() { _view = MathView.result; _showResultConfetti = pct >= 60; });
+    await AppState.addStars(10);
+    if (!mounted) return;
+    await awardWithToast(context, _bs, 'math_first');
+    if (pct == 100 && mounted) await awardWithToast(context, _bs, 'math_perfect', stars: 50);
+    _checkExplorerBadge();
   }
 
   void _checkBlitz(int choiceIdx) {
@@ -201,7 +213,7 @@ class _MathScreenState extends State<MathScreen> {
     });
   }
 
-  void _finishBlitz() {
+  Future<void> _finishBlitz() async {
     _tts.speak("Time's up! You scored $_blitzScore points!");
     SharedPreferences.getInstance().then((p) {
       final prev = p.getInt('blitz_best') ?? -1;
@@ -209,16 +221,18 @@ class _MathScreenState extends State<MathScreen> {
       final best = _blitzScore > prev ? _blitzScore : prev;
       if (mounted) setState(() => _blitzBest = best);
     });
-    if (_blitzScore >= 10) _bs.award('math_blitz10');
-    if (_blitzScore >= 25) _bs.award('math_blitz25');
     setState(() { _view = MathView.result; _showResultConfetti = _blitzScore >= 10; });
+    await AppState.addStars(10);
+    if (!mounted) return;
+    if (_blitzScore >= 10) await awardWithToast(context, _bs, 'math_blitz10');
+    if (_blitzScore >= 25 && mounted) await awardWithToast(context, _bs, 'math_blitz25', stars: 50);
   }
 
   Future<void> _checkExplorerBadge() async {
     final p = await SharedPreferences.getInstance();
     final hasAbc     = (p.getInt('abc_learned') ?? 0) > 0;
     final hasStories = (p.getStringList('stories_done') ?? []).isNotEmpty;
-    if (hasAbc && hasStories) _bs.award('all_apps');
+    if (hasAbc && hasStories && mounted) await awardWithToast(context, _bs, 'all_apps', stars: 50);
   }
 
   @override

@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/story_data.dart';
 import '../utils/tts_service.dart';
 import '../utils/badge_service.dart';
+import '../utils/fx.dart';
+import '../utils/app_state.dart';
 import '../utils/story_repository.dart';
 
 class StoriesScreen extends StatefulWidget {
@@ -115,7 +117,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
     setState(() { _playing = false; _highlightIdx = -1; });
   }
 
-  void _goPage(int dir) {
+  Future<void> _goPage(int dir) async {
     if (_openStory == null) return;
     final total = _openStory!.forLang(_lang).pages.length;
     final next = _page + dir;
@@ -125,10 +127,12 @@ class _StoriesScreenState extends State<StoriesScreen> {
     if (next >= total) {
       _done.add(_openStory!.id);
       _saveDone();
-      _bs.award('story_first');
-      if (_lang == 'hi') _bs.award('story_hindi');
-      if (_done.length >= 4) _bs.award('story_half');
-      if (_done.length >= _stories.length) _bs.award('story_all');
+      await AppState.addStars(10);
+      if (!mounted) return;
+      await awardWithToast(context, _bs, 'story_first');
+      if (_lang == 'hi' && mounted) await awardWithToast(context, _bs, 'story_hindi');
+      if (_done.length >= 4 && mounted) await awardWithToast(context, _bs, 'story_half');
+      if (_done.length >= _stories.length && mounted) await awardWithToast(context, _bs, 'story_all', stars: 50);
       _checkExplorerBadge();
     }
   }
@@ -137,7 +141,9 @@ class _StoriesScreenState extends State<StoriesScreen> {
     final p = await SharedPreferences.getInstance();
     final hasAbc  = (p.getInt('abc_learned') ?? 0) > 0;
     final hasMath = (p.getInt('math_best') ?? -1) >= 0;
-    if (hasAbc && hasMath && _done.isNotEmpty) _bs.award('all_apps');
+    if (hasAbc && hasMath && _done.isNotEmpty && mounted) {
+      await awardWithToast(context, _bs, 'all_apps', stars: 50);
+    }
   }
 
   StoryData? _getNextStory() {
@@ -443,30 +449,38 @@ class _StoriesScreenState extends State<StoriesScreen> {
                   border: Border.all(color: const Color(0xFFecdcc8), width: 1.5),
                   boxShadow: [BoxShadow(color: Colors.black.withAlpha(13), blurRadius: 10)],
                 ),
-                child: Row(children: [
-                  GestureDetector(
-                    onTap: _playing ? _stopSpeech : _startSpeech,
-                    child: Container(
-                      width: 46, height: 46,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: _playing ? [const Color(0xFFc0392b), const Color(0xFFe74c3c)] : [const Color(0xFF7B3F00), const Color(0xFFc4855a)],
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: const Color(0x4C7B3F00), blurRadius: 14)],
-                      ),
-                      child: Center(child: Text(_playing ? '■' : '▶', style: const TextStyle(color: Colors.white, fontSize: 16))),
-                    ),
-                  ),
-                  const SizedBox(width: 11),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(_playing ? (_lang == 'hi' ? '🎙️ सुन रहे हैं…' : '🎙️ Narrating…') : (_lang == 'hi' ? '▶ सुनने के लिए दबाएँ' : '▶ Tap to listen'),
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3a2c1a))),
-                    Text(_lang == 'hi' ? 'हिंदी आवाज़ उपलब्ध' : 'Hindi & English voice',
-                        style: const TextStyle(fontSize: 11, color: Color(0xFFa08060))),
-                  ])),
-                  // Speed buttons
+                child: Column(children: [
                   Row(children: [
+                    GestureDetector(
+                      onTap: _playing ? _stopSpeech : _startSpeech,
+                      child: Container(
+                        width: 46, height: 46,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: _playing ? [const Color(0xFFc0392b), const Color(0xFFe74c3c)] : [const Color(0xFF7B3F00), const Color(0xFFc4855a)],
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [BoxShadow(color: const Color(0x4C7B3F00), blurRadius: 14)],
+                        ),
+                        child: Center(child: Text(_playing ? '■' : '▶', style: const TextStyle(color: Colors.white, fontSize: 16))),
+                      ),
+                    ),
+                    const SizedBox(width: 11),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(_playing ? (_lang == 'hi' ? '🎙️ सुन रहे हैं…' : '🎙️ Narrating…') : (_lang == 'hi' ? '▶ सुनने के लिए दबाएँ' : '▶ Tap to listen'),
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3a2c1a))),
+                      Text(_lang == 'hi' ? 'हिंदी आवाज़ उपलब्ध' : 'Hindi & English voice',
+                          style: const TextStyle(fontSize: 11, color: Color(0xFFa08060))),
+                    ])),
+                  ]),
+                  const SizedBox(height: 10),
+                  // Speed buttons on their own row — prevents overflow on narrow screens
+                  Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    Text(_lang == 'hi' ? 'गति:' : 'Speed:',
+                        style: const TextStyle(fontSize: 11, color: Color(0xFFa08060))),
+                    const SizedBox(width: 6),
+                    _spdBtn('0.5×', 0.5),
+                    const SizedBox(width: 4),
                     _spdBtn('0.7×', 0.7),
                     const SizedBox(width: 4),
                     _spdBtn('1×', 1.0),

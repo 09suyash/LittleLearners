@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../utils/tts_service.dart';
 import '../utils/badge_service.dart';
 import '../utils/fx.dart';
+import '../utils/sound_service.dart';
+import '../utils/app_state.dart';
 
 const _dotEmojis = ['⭐', '🍎', '🐶', '🌈', '🎈', '🦋', '🍭', '🐸', '🌸', '🚀'];
 
@@ -18,6 +20,7 @@ class _CountingScreenState extends State<CountingScreen>
     with SingleTickerProviderStateMixin {
   final _tts = TtsService();
   final _bs  = BadgeService();
+  final _sfx = SoundService();
   final _rng = Random();
 
   // Settings
@@ -92,15 +95,17 @@ class _CountingScreenState extends State<CountingScreen>
 
     if (val == _count) {
       _score++;
-      _bs.award('count_first');
+      _sfx.play(SoundType.correct);
       setState(() => _showConfetti = true);
       // Speak feedback immediately
       _tts.speak('Yes! $_count! Amazing!');
+      awardWithToast(context, _bs, 'count_first', stars: 10);
       // Advance after feedback completes
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) _advance();
       });
     } else {
+      _sfx.play(SoundType.wrong);
       _shakeCtrl.forward(from: 0);
       _tts.speak('Try again! Count carefully.');
       Future.delayed(const Duration(milliseconds: 1200), () {
@@ -109,10 +114,14 @@ class _CountingScreenState extends State<CountingScreen>
     }
   }
 
-  void _advance() {
+  Future<void> _advance() async {
     if (!mounted) return;
     if (_qIdx + 1 >= _roundSize) {
-      if (_score == _roundSize) _bs.award('count_perfect');
+      if (_score == _roundSize) {
+        _sfx.play(SoundType.win);
+        await AppState.addStars(10);
+        if (mounted) await awardWithToast(context, _bs, 'count_perfect', stars: 50);
+      }
       setState(() => _showResult = true);
     } else {
       setState(() { _qIdx++; _nextQuestion(); });

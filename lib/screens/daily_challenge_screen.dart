@@ -3,6 +3,7 @@ import '../utils/daily_challenge_service.dart';
 import '../utils/tts_service.dart';
 import '../utils/badge_service.dart';
 import '../utils/fx.dart';
+import '../utils/app_state.dart';
 
 class DailyChallengeScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -58,11 +59,13 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen>
     if (correct) {
       _tts.speak('Correct! Amazing!');
       await _dcs.markCompleted();
-      _bs.award('daily_done');
       final streak = await _dcs.getStreak();
-      if (streak >= 3)  _bs.award('daily_streak3');
-      if (streak >= 7)  _bs.award('daily_streak7');
       if (mounted) setState(() => _streak = streak);
+      await AppState.addStars(10);
+      if (!mounted) return;
+      await awardWithToast(context, _bs, 'daily_done');
+      if (streak >= 3 && mounted) await awardWithToast(context, _bs, 'daily_streak3');
+      if (streak >= 7 && mounted) await awardWithToast(context, _bs, 'daily_streak7', stars: 50);
       _celebCtrl.forward(from: 0);
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted) widget.onCompleted();

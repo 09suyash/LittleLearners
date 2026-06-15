@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'app_state.dart';
+import 'badge_service.dart';
 
 // Press-to-scale animation wrapper. Pass onTap=null to disable animation.
 class TapScale extends StatefulWidget {
@@ -166,4 +168,217 @@ class _ConfettiPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ConfettiPainter old) => progress != old.progress;
+}
+
+// ── Badge toast ────────────────────────────────────────────────────────────
+// Shows a slide-up card when a badge is newly earned.
+void showBadgeToast(BuildContext context, BadgeDef badge) {
+  final overlay = Overlay.of(context);
+  late OverlayEntry entry;
+  entry = OverlayEntry(
+    builder: (_) => _BadgeToast(badge: badge, onDone: () => entry.remove()),
+  );
+  overlay.insert(entry);
+}
+
+/// Awards [id], shows toast + adds [stars] if newly earned.
+Future<void> awardWithToast(
+  BuildContext context,
+  BadgeService bs,
+  String id, {
+  int stars = 25,
+}) async {
+  final isNew = await bs.award(id);
+  if (!isNew) return;
+  await AppState.addStars(stars);
+  BadgeDef? badge;
+  for (final b in allBadges) {
+    if (b.id == id) { badge = b; break; }
+  }
+  if (badge != null && context.mounted) showBadgeToast(context, badge);
+}
+
+class _BadgeToast extends StatefulWidget {
+  final BadgeDef badge;
+  final VoidCallback onDone;
+  const _BadgeToast({required this.badge, required this.onDone});
+
+  @override
+  State<_BadgeToast> createState() => _BadgeToastState();
+}
+
+class _BadgeToastState extends State<_BadgeToast>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<Offset> _slide;
+  late Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 380));
+    _slide = Tween<Offset>(begin: const Offset(0, 2.0), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut));
+    _fade = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0, 0.45)));
+    _ctrl.forward();
+    Future.delayed(const Duration(milliseconds: 2700), _dismiss);
+  }
+
+  Future<void> _dismiss() async {
+    if (!mounted) return;
+    await _ctrl.reverse();
+    widget.onDone();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.of(context).padding.bottom + 88;
+    return Positioned(
+      bottom: bottom,
+      left: 20,
+      right: 20,
+      child: SlideTransition(
+        position: _slide,
+        child: FadeTransition(
+          opacity: _fade,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF9F43), Color(0xFFFFD93D)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(
+                      color: Color(0x55FFD93D), blurRadius: 24, spreadRadius: 2),
+                ],
+              ),
+              child: Row(children: [
+                Text(widget.badge.emoji,
+                    style: const TextStyle(fontSize: 38)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('🏅 Badge Earned!',
+                            style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF7D3C00))),
+                        Text(widget.badge.name,
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF1a0533))),
+                        Text(widget.badge.desc,
+                            style: const TextStyle(
+                                fontSize: 11, color: Color(0xAA1a0533))),
+                      ]),
+                ),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Mascot corner companion ─────────────────────────────────────────────────
+// Drop inside any game screen's Stack. Set celebrating=true on win.
+class MascotCorner extends StatefulWidget {
+  final bool celebrating;
+  const MascotCorner({super.key, this.celebrating = false});
+
+  @override
+  State<MascotCorner> createState() => _MascotCornerState();
+}
+
+class _MascotCornerState extends State<MascotCorner>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _float;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 900))
+      ..repeat(reverse: true);
+    _float = Tween<double>(begin: 0, end: -8)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void didUpdateWidget(MascotCorner old) {
+    super.didUpdateWidget(old);
+    // Speed up bounce on celebrate
+    _ctrl.duration = widget.celebrating
+        ? const Duration(milliseconds: 280)
+        : const Duration(milliseconds: 900);
+    if (!_ctrl.isAnimating) _ctrl.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    return Positioned(
+      right: 14,
+      bottom: 96 + bottomInset,
+      child: IgnorePointer(
+        child: AnimatedBuilder(
+          animation: _float,
+          builder: (_, child) => Transform.translate(
+            offset: Offset(0, _float.value),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (widget.celebrating)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFD93D),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withAlpha(40), blurRadius: 6)
+                    ],
+                  ),
+                  child: const Text('Woohoo! 🎉',
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1a0533))),
+                ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: Text(
+                  widget.celebrating ? '🤩' : AppState.mascot,
+                  key: ValueKey(widget.celebrating),
+                  style: const TextStyle(fontSize: 42),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
 }

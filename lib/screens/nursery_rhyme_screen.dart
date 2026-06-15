@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../utils/badge_service.dart';
+import '../utils/fx.dart';
+import '../utils/app_state.dart';
 
 // ── Data ────────────────────────────────────────────────────────────────
 
@@ -119,12 +121,16 @@ class _NurseryRhymeScreenState extends State<NurseryRhymeScreen> {
     setState(() { _position = pos; if (active != _currentLine) { _currentLine = active; _scrollToLine(active); } });
   }
 
-  void _onComplete() {
+  Future<void> _onComplete() async {
     if (!mounted) return;
     setState(() { _isPlaying = false; _currentLine = -1; _position = Duration.zero; });
     _played.add(_rhymeIdx);
-    _bs.award('rhyme_first');
-    if (_played.length >= _rhymes.length) _bs.award('rhyme_all');
+    await AppState.addStars(10);
+    if (!mounted) return;
+    await awardWithToast(context, _bs, 'rhyme_first');
+    if (_played.length >= _rhymes.length && mounted) {
+      await awardWithToast(context, _bs, 'rhyme_all', stars: 50);
+    }
   }
 
   Future<void> _play() async {

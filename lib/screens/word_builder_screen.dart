@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../utils/tts_service.dart';
 import '../utils/badge_service.dart';
 import '../utils/fx.dart';
+import '../utils/sound_service.dart';
+import '../utils/app_state.dart';
 
 // (word, emoji)
 const _wordList = [
@@ -27,6 +29,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
     with TickerProviderStateMixin {
   final _tts = TtsService();
   final _bs  = BadgeService();
+  final _sfx = SoundService();
   final _rng = Random();
 
   late List<(String, String)> _session;  // 10 words for this session
@@ -119,14 +122,17 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
     }
   }
 
-  void _onWordComplete() {
+  Future<void> _onWordComplete() async {
     final word = _session[_wIdx].$1;
     _score++;
+    _sfx.play(SoundType.correct);
     _tts.speak('$word! Well done!');
-    _bs.award('word_first');
-    if (_score >= 5)  _bs.award('word_5');
-    if (_score >= 10) _bs.award('word_10');
     setState(() { _won = true; _showConfetti = true; });
+    await AppState.addStars(10);
+    if (!mounted) return;
+    await awardWithToast(context, _bs, 'word_first');
+    if (_score >= 5 && mounted)  await awardWithToast(context, _bs, 'word_5');
+    if (_score >= 10 && mounted) await awardWithToast(context, _bs, 'word_10', stars: 50);
   }
 
   void _next() {

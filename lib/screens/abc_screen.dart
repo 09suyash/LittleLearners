@@ -4,6 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/letter_data.dart';
 import '../utils/tts_service.dart';
 import '../utils/badge_service.dart';
+import '../utils/fx.dart';
+import '../utils/sound_service.dart';
+import '../utils/app_state.dart';
 
 class AbcScreen extends StatefulWidget {
   const AbcScreen({super.key});
@@ -17,6 +20,7 @@ enum AbcView { grid, trace, quiz, result }
 class _AbcScreenState extends State<AbcScreen> {
   final TtsService _tts = TtsService();
   final BadgeService _bs = BadgeService();
+  final SoundService _sfx = SoundService();
   final Set<int> _learned = {};
   int? _selectedIdx;
   AbcView _view = AbcView.grid;
@@ -54,9 +58,9 @@ class _AbcScreenState extends State<AbcScreen> {
     await prefs.setInt('abc_learned', _learned.length);
     if (_quizBest != null) await prefs.setInt('abc_quiz_best', _quizBest!);
     // Badge checks
-    if (_learned.isNotEmpty)   _bs.award('abc_first');
-    if (_learned.length >= 13) _bs.award('abc_half');
-    if (_learned.length >= 26) _bs.award('abc_all');
+    if (_learned.isNotEmpty && mounted)   await awardWithToast(context, _bs, 'abc_first', stars: 10);
+    if (_learned.length >= 13 && mounted) await awardWithToast(context, _bs, 'abc_half', stars: 25);
+    if (_learned.length >= 26 && mounted) await awardWithToast(context, _bs, 'abc_all', stars: 50);
     _checkExplorerBadge();
   }
 
@@ -123,8 +127,10 @@ class _AbcScreenState extends State<AbcScreen> {
       if (correct) _qScore++;
     });
     if (correct) {
+      _sfx.play(SoundType.correct);
       _tts.speak('Correct! Brilliant!');
     } else if (choiceIdx >= 0) {
+      _sfx.play(SoundType.wrong);
       _tts.speak('The answer was ${_quizQs[_qCur].answer}');
     }
     Future.delayed(const Duration(milliseconds: 1500), _nextQuestion);
@@ -147,17 +153,20 @@ class _AbcScreenState extends State<AbcScreen> {
     final p = await SharedPreferences.getInstance();
     final hasMath    = (p.getInt('math_best') ?? -1) >= 0;
     final hasStories = (p.getStringList('stories_done') ?? []).isNotEmpty;
-    if (_learned.isNotEmpty && hasMath && hasStories) _bs.award('all_apps');
+    if (_learned.isNotEmpty && hasMath && hasStories && mounted) {
+      await awardWithToast(context, _bs, 'all_apps', stars: 50);
+    }
   }
 
-  void _showResult() {
+  Future<void> _showResult() async {
     if (_quizBest == null || _qScore > _quizBest!) {
       _quizBest = _qScore;
       _savePrefs();
     }
-    if (_qScore >= 5)  _bs.award('abc_quiz5');
-    if (_qScore >= 10) _bs.award('abc_quiz10');
     setState(() => _view = AbcView.result);
+    await AppState.addStars(10);
+    if (mounted && _qScore >= 5)  await awardWithToast(context, _bs, 'abc_quiz5');
+    if (mounted && _qScore >= 10) await awardWithToast(context, _bs, 'abc_quiz10', stars: 50);
   }
 
   @override

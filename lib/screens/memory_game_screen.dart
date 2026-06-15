@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import '../models/letter_data.dart';
 import '../utils/tts_service.dart';
 import '../utils/badge_service.dart';
+import '../utils/fx.dart';
+import '../utils/sound_service.dart';
+import '../utils/app_state.dart';
 
 class MemoryGameScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -16,6 +19,7 @@ class MemoryGameScreen extends StatefulWidget {
 class _MemoryGameScreenState extends State<MemoryGameScreen> {
   final TtsService _tts = TtsService();
   final BadgeService _bs = BadgeService();
+  final SoundService _sfx = SoundService();
   final _rng = Random();
 
   // Difficulty: easy=4 pairs, med=6 pairs, hard=8 pairs
@@ -83,6 +87,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     }
 
     setState(() => _flipped.add(idx));
+    _sfx.play(SoundType.tap);
     _tts.speak(_cards[idx].isEmoji ? '' : _cards[idx].label, rate: 0.7, pitch: 1.3);
 
     if (_flipped.length == 2) {
@@ -90,6 +95,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
       final a = _flipped[0], b = _flipped[1];
       if (_cards[a].id == _cards[b].id) {
         // Match
+        _sfx.play(SoundType.correct);
         Future.delayed(const Duration(milliseconds: 500), () {
           if (!mounted) return;
           setState(() {
@@ -100,6 +106,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         });
       } else {
         // Mismatch — flip back after delay
+        _sfx.play(SoundType.wrong);
         _busy = true;
         Future.delayed(const Duration(milliseconds: 900), () {
           if (!mounted) return;
@@ -109,11 +116,17 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     }
   }
 
-  void _onWin() {
+  Future<void> _onWin() async {
     _timer?.cancel();
+    _sfx.play(SoundType.win);
     _tts.speak('Amazing! You matched them all!');
-    _bs.award('memory_first');
-    if (_diffIdx == 2) _bs.award('memory_hard');
+    await AppState.addStars(10);
+    if (!mounted) return;
+    await awardWithToast(context, _bs, 'memory_first');
+    if (_diffIdx == 2 && mounted) {
+      await Future.delayed(const Duration(milliseconds: 350));
+      if (mounted) await awardWithToast(context, _bs, 'memory_hard', stars: 50);
+    }
   }
 
   void _restart() {
@@ -130,7 +143,8 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Stack(children: [
+      Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft, end: Alignment.bottomRight,
@@ -144,7 +158,10 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
           Expanded(child: _won ? _buildWinActions() : _buildGrid()),
         ]),
       ),
-    );
+    ),
+      MascotCorner(celebrating: _won),
+      ConfettiOverlay(trigger: _won),
+    ]);
   }
 
   Widget _buildHeader() {
