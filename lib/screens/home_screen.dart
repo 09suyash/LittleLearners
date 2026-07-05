@@ -253,9 +253,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: Text('Reset Progress',
                   style: TextStyle(
                       color: Colors.white.withAlpha(38),
-                      fontSize: 11,
-                      decoration: TextDecoration.underline,
-                      decorationColor: Colors.white.withAlpha(38))),
+                      fontSize: 11)),
             ),
             const SizedBox(height: 8),
           ]),
