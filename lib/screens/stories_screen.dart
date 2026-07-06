@@ -23,7 +23,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
   StoryData? _openStory;
   int _page = 0;
   bool _playing = false;
-  double _speed = 1.0;
+  double _speed = 0.5;
   bool _autoAdvance = false;
   final Set<int> _done = {};
   List<StoryData> _stories = [];
@@ -88,7 +88,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
       final total = _openStory!.forLang(_lang).pages.length;
       if (_page < total) {
         Future.delayed(const Duration(milliseconds: 900), () {
-          if (mounted) _goPage(1);
+          if (mounted) _goPage(1, autoPlay: true);
         });
       }
     }
@@ -117,13 +117,19 @@ class _StoriesScreenState extends State<StoriesScreen> {
     setState(() { _playing = false; _highlightIdx = -1; });
   }
 
-  Future<void> _goPage(int dir) async {
+  Future<void> _goPage(int dir, {bool autoPlay = false}) async {
     if (_openStory == null) return;
     final total = _openStory!.forLang(_lang).pages.length;
     final next = _page + dir;
     if (next < 0 || next > total) return;
+    final wasPlaying = _playing;
     _stopSpeech();
     setState(() { _page = next; });
+    if (next < total && (autoPlay || (wasPlaying && _autoAdvance))) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) _startSpeech();
+      });
+    }
     if (next >= total) {
       _done.add(_openStory!.id);
       _saveDone();
@@ -689,7 +695,11 @@ class _HighlightedText extends StatelessWidget {
       spans.add(TextSpan(
         text: w.text,
         style: active
-            ? const TextStyle(backgroundColor: Color(0x4Dc4855a), color: Color(0xFF7B3F00), fontWeight: FontWeight.w700)
+            ? TextStyle(
+                color: const Color(0xFFc4855a),
+                fontWeight: FontWeight.w900,
+                fontSize: isHindi ? 21 : 20,
+              )
             : null,
       ));
       pos = w.end;

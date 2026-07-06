@@ -24,7 +24,7 @@ class TtsService {
     try {
       await _tts.setVolume(1.0);
       await _tts.setPitch(1.1);
-      await _tts.setSpeechRate(0.85);
+      await _tts.setSpeechRate(0.45);
       _initCompleter!.complete();
     } catch (e) {
       _initCompleter!.completeError(e);
@@ -32,7 +32,7 @@ class TtsService {
     }
   }
 
-  Future<void> speak(String text, {String lang = 'en', double rate = 0.85, double pitch = 1.1}) async {
+  Future<void> speak(String text, {String lang = 'en', double rate = 0.45, double pitch = 1.1}) async {
     final request = _TtsRequest(text: text, lang: lang, rate: rate, pitch: pitch);
     _queue.add(request);
     _processQueue();
