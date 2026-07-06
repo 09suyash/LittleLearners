@@ -27,6 +27,10 @@ class KidsLearningApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
+      builder: (context, child) => DefaultTextStyle.merge(
+        style: const TextStyle(decoration: TextDecoration.none),
+        child: child!,
+      ),
       home: const MainShell(),
     );
   }
@@ -77,19 +81,19 @@ class _MainShellState extends State<MainShell> {
         unselectedFontSize: 10,
         items: const [
           BottomNavigationBarItem(
-            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('🏠', style: TextStyle(fontSize: 22))),
+            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('🏠', style: TextStyle(fontSize: 22, decoration: TextDecoration.none))),
             label: 'HOME',
           ),
           BottomNavigationBarItem(
-            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('🔤', style: TextStyle(fontSize: 22))),
+            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('🔤', style: TextStyle(fontSize: 22, decoration: TextDecoration.none))),
             label: 'ABC',
           ),
           BottomNavigationBarItem(
-            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('🔢', style: TextStyle(fontSize: 22))),
+            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('🔢', style: TextStyle(fontSize: 22, decoration: TextDecoration.none))),
             label: 'MATH',
           ),
           BottomNavigationBarItem(
-            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('📚', style: TextStyle(fontSize: 22))),
+            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('📚', style: TextStyle(fontSize: 22, decoration: TextDecoration.none))),
             label: 'STORIES',
           ),
         ],
