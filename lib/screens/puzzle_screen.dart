@@ -302,7 +302,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
               color: Colors.white.withAlpha(18),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Text('←', style: TextStyle(color: Colors.white70, fontSize: 18)),
+            child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
           ),
         ),
         const SizedBox(width: 10),

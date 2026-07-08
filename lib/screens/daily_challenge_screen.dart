@@ -120,7 +120,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen>
           child: Container(
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(9)),
-            child: const Text('←', style: TextStyle(color: Colors.white70, fontSize: 16)),
+            child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
           ),
         ),
         const SizedBox(width: 10),
@@ -236,7 +236,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen>
           child: Container(
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(9)),
-            child: const Text('←', style: TextStyle(color: Colors.white70, fontSize: 16)),
+            child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
           ),
         ),
       ]),

@@ -9,7 +9,8 @@ import '../utils/sound_service.dart';
 import '../utils/app_state.dart';
 
 class AbcScreen extends StatefulWidget {
-  const AbcScreen({super.key});
+  final VoidCallback? onGoHome;
+  const AbcScreen({super.key, this.onGoHome});
 
   @override
   State<AbcScreen> createState() => _AbcScreenState();
@@ -207,9 +208,22 @@ class _AbcScreenState extends State<AbcScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
               child: Column(
                 children: [
+                  Row(children: [
+                    if (widget.onGoHome != null)
+                      GestureDetector(
+                        onTap: widget.onGoHome,
+                        child: Container(
+                          width: 40, height: 40,
+                          decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
+                          child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
+                        ),
+                      ),
+                    const Spacer(),
+                  ]),
+                  const SizedBox(height: 6),
                   ShaderMask(
                     shaderCallback: (b) => const LinearGradient(
                       colors: [Color(0xFFFFD93D), Color(0xFFFF6B6B), Color(0xFF6BCB77), Color(0xFF4D96FF), Color(0xFFc471f5)],
@@ -578,7 +592,7 @@ class _TraceScreenState extends State<_TraceScreen> {
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white.withAlpha(38)),
                     ),
-                    child: const Center(child: Text('←', style: TextStyle(color: Colors.white70))),
+                    child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
                   ),
                 ),
                 const SizedBox(width: 12),

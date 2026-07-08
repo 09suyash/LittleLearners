@@ -171,9 +171,9 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         GestureDetector(
           onTap: () { _timer?.cancel(); widget.onBack(); },
           child: Container(
-            padding: const EdgeInsets.all(8),
+            width: 40, height: 40,
             decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
-            child: const Text('←', style: TextStyle(color: Colors.white70, fontSize: 18)),
+            child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
           ),
         ),
         const SizedBox(width: 10),

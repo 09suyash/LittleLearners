@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => Dialog(
+      builder: (dialogCtx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
         backgroundColor: const Color(0xFF1a1040),
         child: Padding(
@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     await prefs.setString('child_name', name);
                     if (!mounted) return;
                     setState(() { _childName = name; AppState.childName = name; });
-                    Navigator.pop(context);
+                    if (dialogCtx.mounted) Navigator.pop(dialogCtx);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFD93D),

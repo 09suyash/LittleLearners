@@ -8,7 +8,8 @@ import '../utils/app_state.dart';
 import '../utils/story_repository.dart';
 
 class StoriesScreen extends StatefulWidget {
-  const StoriesScreen({super.key});
+  final VoidCallback? onGoHome;
+  const StoriesScreen({super.key, this.onGoHome});
 
   @override
   State<StoriesScreen> createState() => _StoriesScreenState();
@@ -208,11 +209,32 @@ class _StoriesScreenState extends State<StoriesScreen> {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 26, 14, 0),
+              padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
               child: Column(
                 children: [
-                  const Text('📚 Moral Stories',
-                      style: TextStyle(fontFamily: 'serif', fontSize: 26, fontWeight: FontWeight.w700, color: Color(0xFF7B3F00))),
+                  if (widget.onGoHome != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: GestureDetector(
+                        onTap: widget.onGoHome,
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(color: const Color(0xFFecdcc8), borderRadius: BorderRadius.circular(10)),
+                            child: const Center(child: Icon(Icons.arrow_back, color: Color(0xFF7B3F00), size: 24)),
+                          ),
+                          const SizedBox(width: 7),
+                          const Text('Home', style: TextStyle(color: Color(0xFFa08060), fontSize: 13, fontWeight: FontWeight.w700)),
+                        ]),
+                      ),
+                    ),
+                  if (widget.onGoHome != null) const SizedBox(height: 12),
+                  RichText(
+                    text: const TextSpan(children: [
+                      TextSpan(text: '📚 ', style: TextStyle(fontSize: 26)),
+                      TextSpan(text: 'Moral Stories', style: TextStyle(fontFamily: 'serif', fontSize: 26, fontWeight: FontWeight.w700, color: Color(0xFF7B3F00))),
+                    ]),
+                  ),
                   const SizedBox(height: 4),
                   Text('${_stories.length} stories • Hindi & English voice narration',
                       style: TextStyle(color: const Color(0xFFa08060).withAlpha(204), fontSize: 13)),
@@ -396,7 +418,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
               child: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Text('←', style: TextStyle(color: Color(0xFFa08060), fontSize: 18)),
+                  Icon(Icons.arrow_back, color: Color(0xFFa08060), size: 24),
                   SizedBox(width: 6),
                   Text('Back to Stories', style: TextStyle(color: Color(0xFFa08060), fontSize: 13, fontWeight: FontWeight.w700)),
                 ]),
@@ -571,8 +593,15 @@ class _StoriesScreenState extends State<StoriesScreen> {
                 child: Column(children: [
                   const Text('🎉', style: TextStyle(fontSize: 48)),
                   const SizedBox(height: 7),
-                  Text(_lang == 'hi' ? 'बहुत बढ़िया! 🎉' : 'Well done! 🎉',
-                      style: const TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF7B3F00))),
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF7B3F00)),
+                      children: [
+                        TextSpan(text: _lang == 'hi' ? 'बहुत बढ़िया! ' : 'Well done! '),
+                        const TextSpan(text: '🎉', style: TextStyle(fontFamily: null)),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   Text(_lang == 'hi' ? 'आपने यह कहानी पूरी की!' : 'You finished this story!',
                       style: const TextStyle(color: Color(0xFFa08060), fontSize: 13)),

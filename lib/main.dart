@@ -47,6 +47,11 @@ class _MainShellState extends State<MainShell> {
   int _tab = 0;
   final _tabNotifier = ValueNotifier<int>(0);
 
+  // Nested navigator for the home tab so all pushed screens
+  // (Memory Match, Word Builder, etc.) stay inside it and the
+  // bottom nav bar remains visible.
+  final _homeNavKey = GlobalKey<NavigatorState>();
+
   @override
   void dispose() {
     _tabNotifier.dispose();
@@ -54,22 +59,54 @@ class _MainShellState extends State<MainShell> {
   }
 
   void goToTab(int idx) {
+    // Always pop the home navigator back to its root before any tab switch,
+    // so the home screen is clean if the user returns to it later.
+    _homeNavKey.currentState?.popUntil((r) => r.isFirst);
+    if (idx == _tab) return;
     setState(() => _tab = idx);
     _tabNotifier.value = idx;
   }
 
   @override
   Widget build(BuildContext context) {
-    final screens = [
-      HomeScreen(onTabSelected: goToTab, tabNotifier: _tabNotifier),
-      const AbcScreen(),
-      const MathScreen(),
-      const StoriesScreen(),
-    ];
-
-    return Scaffold(
-      backgroundColor: const Color(0xFF0f0c29),
-      body: IndexedStack(index: _tab, children: screens),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        // Delegate back gesture to the home tab's nested navigator first
+        if (_homeNavKey.currentState?.canPop() ?? false) {
+          if (_tab != 0) setState(() => _tab = 0);
+          _homeNavKey.currentState!.pop();
+          return;
+        }
+        // On a non-home tab, back goes to home
+        if (_tab != 0) {
+          goToTab(0);
+        }
+        // On home tab at root — do nothing (prevents accidental app close for kids)
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0f0c29),
+      body: IndexedStack(
+        index: _tab,
+        children: [
+          // Home tab uses a nested Navigator so pushed sub-screens
+          // (games, challenges, badges, parent dashboard) are contained
+          // within tab 0 and the bottom nav stays visible throughout.
+          Navigator(
+            key: _homeNavKey,
+            onGenerateRoute: (_) => MaterialPageRoute(
+              builder: (_) => HomeScreen(
+                onTabSelected: goToTab,
+                tabNotifier: _tabNotifier,
+              ),
+            ),
+          ),
+          AbcScreen(onGoHome: () => goToTab(0)),
+          MathScreen(onGoHome: () => goToTab(0)),
+          StoriesScreen(onGoHome: () => goToTab(0)),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _tab,
         onTap: goToTab,
@@ -97,6 +134,7 @@ class _MainShellState extends State<MainShell> {
             label: 'STORIES',
           ),
         ],
+      ),
       ),
     );
   }

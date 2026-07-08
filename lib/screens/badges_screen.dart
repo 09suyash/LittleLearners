@@ -52,7 +52,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Text('←', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                    const Icon(Icons.arrow_back, color: Colors.white70, size: 24),
                     SizedBox(width: 6),
                     Text('Back', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w700)),
                   ]),

@@ -13,7 +13,8 @@ enum MathOp { add, sub, mul }
 enum Difficulty { easy, med, hard }
 
 class MathScreen extends StatefulWidget {
-  const MathScreen({super.key});
+  final VoidCallback? onGoHome;
+  const MathScreen({super.key, this.onGoHome});
 
   @override
   State<MathScreen> createState() => _MathScreenState();
@@ -265,6 +266,23 @@ class _MathScreenState extends State<MathScreen> {
               padding: const EdgeInsets.all(22),
               child: Column(
                 children: [
+                  if (widget.onGoHome != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: GestureDetector(
+                        onTap: widget.onGoHome,
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
+                            child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
+                          ),
+                          const SizedBox(width: 7),
+                          Text('Home', style: TextStyle(color: Colors.white.withAlpha(115), fontSize: 13, fontWeight: FontWeight.w700)),
+                        ]),
+                      ),
+                    ),
+                  if (widget.onGoHome != null) const SizedBox(height: 14),
                   const Text('🔢', style: TextStyle(fontSize: 40)),
                   const SizedBox(height: 5),
                   ShaderMask(
@@ -332,7 +350,7 @@ class _MathScreenState extends State<MathScreen> {
                 GestureDetector(
                   onTap: () => setState(() => _view = MathView.modeSelect),
                   child: Row(children: [
-                    const Text('←', style: TextStyle(color: Colors.white54)),
+                    const Icon(Icons.arrow_back, color: Colors.white70, size: 24),
                     const SizedBox(width: 7),
                     Text('Back to Modes', style: TextStyle(color: Colors.white.withAlpha(115), fontSize: 13, fontWeight: FontWeight.w700)),
                   ]),
