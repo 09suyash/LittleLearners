@@ -36,7 +36,14 @@ class _BadgesScreenState extends State<BadgesScreen> {
           colors: [Color(0xFF0f0c29), Color(0xFF1a1040), Color(0xFF24243e)],
         ),
       ),
-      child: SafeArea(
+      child: Stack(children: [
+        Positioned(top: -30, right: -30,
+            child: Opacity(opacity: 0.12, child: Image.asset('assets/images/trophy_card.png', width: 160, height: 160, fit: BoxFit.contain))),
+        Positioned(bottom: 80, left: -10,
+            child: Opacity(opacity: 0.05, child: const Text('🌟', style: TextStyle(fontSize: 100)))),
+        Positioned(bottom: -10, right: -10,
+            child: Opacity(opacity: 0.06, child: const Text('✨', style: TextStyle(fontSize: 90)))),
+        SafeArea(
         child: Column(children: [
           // Back button row
           Padding(
@@ -64,7 +71,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
             child: Column(children: [
-              const Text('🏅', style: TextStyle(fontSize: 44)),
+              Image.asset('assets/images/trophy_card.png', width: 80, height: 80, fit: BoxFit.contain),
               const SizedBox(height: 6),
               ShaderMask(
                 shaderCallback: (b) => const LinearGradient(
@@ -109,6 +116,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
           ),
         ]),
       ),
+      ]),
     );
   }
 }

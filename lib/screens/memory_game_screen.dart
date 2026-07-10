@@ -151,13 +151,21 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
           colors: [Color(0xFF0f0c29), Color(0xFF302b63), Color(0xFF24243e)],
         ),
       ),
-      child: SafeArea(
-        child: Column(children: [
-          _buildHeader(),
-          if (_won) _buildWinBanner(),
-          Expanded(child: _won ? _buildWinActions() : _buildGrid()),
-        ]),
-      ),
+      child: Stack(children: [
+        Positioned(top: -30, right: -30,
+            child: Opacity(opacity: 0.12, child: Image.asset('assets/images/memory_card.png', width: 160, height: 160, fit: BoxFit.contain))),
+        Positioned(bottom: 80, left: -10,
+            child: Opacity(opacity: 0.05, child: const Text('🌟', style: TextStyle(fontSize: 100)))),
+        Positioned(bottom: -10, right: -10,
+            child: Opacity(opacity: 0.06, child: const Text('✨', style: TextStyle(fontSize: 90)))),
+        SafeArea(
+          child: Column(children: [
+            _buildHeader(),
+            if (_won) _buildWinBanner(),
+            Expanded(child: _won ? _buildWinActions() : _buildGrid()),
+          ]),
+        ),
+      ]),
     ),
       MascotCorner(celebrating: _won),
       ConfettiOverlay(trigger: _won),
@@ -177,7 +185,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
           ),
         ),
         const SizedBox(width: 10),
-        const Text('🃏', style: TextStyle(fontSize: 22)),
+        Image.asset('assets/images/memory_card.png', width: 30, height: 30, fit: BoxFit.contain),
         const SizedBox(width: 6),
         const Expanded(
           child: Text('Memory Match',

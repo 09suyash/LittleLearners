@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/badge_service.dart';
 import '../utils/daily_challenge_service.dart';
@@ -182,7 +183,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             ),
           ),
           const SizedBox(width: 10),
-          const Text('👨‍👩‍👧', style: TextStyle(fontSize: 22)),
+          SvgPicture.asset('assets/images/parent_card.svg', width: 30, height: 30, fit: BoxFit.contain),
           const SizedBox(width: 6),
           const Text('Parent Dashboard',
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white)),
@@ -275,23 +276,23 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 24),
         child: Column(children: [
           _section('📚 Learning Progress', [
-            _statCard('🔤', 'ABC', '$_abcLearned / 26\nLetters learned', _abcLearned / 26),
-            _statCard('🔢', 'Math Quiz',
+            _statCard(Image.asset('assets/images/abc_card.png', width: 28, height: 28, fit: BoxFit.contain), 'ABC', '$_abcLearned / 26\nLetters learned', _abcLearned / 26),
+            _statCard(Image.asset('assets/images/math_card.png', width: 28, height: 28, fit: BoxFit.contain), 'Math Quiz',
                 _mathBest >= 0 ? '$_mathBest / $_mathTotal\nBest score' : 'Not played yet', _mathBest >= 0 ? _mathBest / _mathTotal : 0),
-            _statCard('📚', 'Stories', '$_storiesDone / $_totalStories\nCompleted', _totalStories > 0 ? _storiesDone / _totalStories : 0),
+            _statCard(Image.asset('assets/images/stories_card.png', width: 28, height: 28, fit: BoxFit.contain), 'Stories', '$_storiesDone / $_totalStories\nCompleted', _totalStories > 0 ? _storiesDone / _totalStories : 0),
           ]),
           _section('⚡ Daily Challenge', [
-            _statCard('🔥', 'Streak', '$_dcStreak days', _dcStreak > 0 ? 1.0 : 0),
-            _statCard('⚡', 'Blitz Best', _blitzBest > 0 ? '$_blitzBest pts' : 'Not played', _blitzBest > 0 ? 1.0 : 0),
-            _statCard('🏅', 'Badges', '$_badgeCount / ${allBadges.length}', _badgeCount / allBadges.length),
+            _statCard(const Text('🔥', style: TextStyle(fontSize: 20)), 'Streak', '$_dcStreak days', _dcStreak > 0 ? 1.0 : 0),
+            _statCard(const Text('⚡', style: TextStyle(fontSize: 20)), 'Blitz Best', _blitzBest > 0 ? '$_blitzBest pts' : 'Not played', _blitzBest > 0 ? 1.0 : 0),
+            _statCard(Image.asset('assets/images/trophy_card.png', width: 28, height: 28, fit: BoxFit.contain), 'Badges', '$_badgeCount / ${allBadges.length}', _badgeCount / allBadges.length),
           ]),
           _section('🎮 Mini-games Tried', [
-            _badgeCard('🃏', 'Memory',    'memory_first', 'memory_hard', 'Hard mode'),
-            _badgeCard('🔡', 'Words',     'word_first',   'word_10',     'All 10'),
-            _badgeCard('🔢', 'Counting',  'count_first',  'count_perfect', 'Perfect'),
-            _badgeCard('🎨', 'Coloring',  'color_first',  'color_scene', 'Scene done'),
-            _badgeCard('🧩', 'Puzzle',    'puzzle_first', 'puzzle_fast', 'Speed solver'),
-            _badgeCard('🎵', 'Rhymes',    'rhyme_first',  'rhyme_all',   'All 5'),
+            _badgeCard(Image.asset('assets/images/memory_card.png', width: 22, height: 22, fit: BoxFit.contain), 'Memory',   'memory_first', 'memory_hard', 'Hard mode'),
+            _badgeCard(Image.asset('assets/images/word_card.png',   width: 22, height: 22, fit: BoxFit.contain), 'Words',    'word_first',   'word_10',     'All 10'),
+            _badgeCard(Image.asset('assets/images/counting_card.png', width: 22, height: 22, fit: BoxFit.contain), 'Counting', 'count_first',  'count_perfect', 'Perfect'),
+            _badgeCard(Image.asset('assets/images/coloring_card.png', width: 22, height: 22, fit: BoxFit.contain), 'Coloring', 'color_first',  'color_scene', 'Scene done'),
+            _badgeCard(Image.asset('assets/images/puzzle_card.png',  width: 22, height: 22, fit: BoxFit.contain), 'Puzzle',   'puzzle_first', 'puzzle_fast', 'Speed solver'),
+            _badgeCard(const Text('🎵', style: TextStyle(fontSize: 18)),                                          'Rhymes',   'rhyme_first',  'rhyme_all',   'All 5'),
           ]),
           const SizedBox(height: 16),
           _contentSection(),
@@ -315,7 +316,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
           ),
         ),
         const SizedBox(width: 10),
-        const Text('👨‍👩‍👧', style: TextStyle(fontSize: 22)),
+        SvgPicture.asset('assets/images/parent_card.svg', width: 30, height: 30, fit: BoxFit.contain),
         const SizedBox(width: 6),
         const Expanded(child: Text('Parent Dashboard',
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white))),
@@ -355,7 +356,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     ]);
   }
 
-  Widget _statCard(String emoji, String label, String value, double progress) {
+  Widget _statCard(Widget icon, String label, String value, double progress) {
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
       decoration: BoxDecoration(
@@ -364,7 +365,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
         border: Border.all(color: Colors.white.withAlpha(22)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
+        icon,
         const SizedBox(height: 4),
         Text(label, style: TextStyle(fontSize: 10, color: Colors.white.withAlpha(120), fontWeight: FontWeight.w700)),
         const SizedBox(height: 2),
@@ -388,7 +389,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     );
   }
 
-  Widget _badgeCard(String emoji, String label, String badge1, String badge2, String badge2Label) {
+  Widget _badgeCard(Widget icon, String label, String badge1, String badge2, String badge2Label) {
     final tried     = _earned.contains(badge1);
     final mastered  = _earned.contains(badge2);
     return Container(
@@ -403,7 +404,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Text(emoji, style: const TextStyle(fontSize: 18)),
+          icon,
           const Spacer(),
           Text(tried ? '✅' : '○', style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(120))),
         ]),
@@ -447,7 +448,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 color: const Color(0xFFc4855a).withAlpha(40),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Center(child: Text('📚', style: TextStyle(fontSize: 16))),
+              child: Center(child: Image.asset('assets/images/stories_card.png', width: 22, height: 22, fit: BoxFit.contain)),
             ),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

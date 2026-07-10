@@ -188,21 +188,18 @@ class _StoriesScreenState extends State<StoriesScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFfff4e6), Color(0xFFffe8cc), Color(0xFFfff8f2)],
+          colors: [Color(0xFF0f0c29), Color(0xFF1a1035), Color(0xFF0f0c29)],
           stops: [0.0, 0.55, 1.0],
         ),
       ),
       child: Stack(children: [
         // Decorative blobs
         Positioned(top: -30, right: -30,
-            child: Opacity(opacity: 0.07,
-                child: const Text('📚', style: TextStyle(fontSize: 160)))),
-        Positioned(top: 220, left: -25,
-            child: Opacity(opacity: 0.05,
-                child: const Text('⭐', style: TextStyle(fontSize: 110)))),
-        Positioned(bottom: 120, right: -20,
-            child: Opacity(opacity: 0.05,
-                child: const Text('🌟', style: TextStyle(fontSize: 120)))),
+            child: Opacity(opacity: 0.12, child: Image.asset('assets/images/stories_card.png', width: 160, height: 160, fit: BoxFit.contain))),
+        Positioned(bottom: 80, left: -10,
+            child: Opacity(opacity: 0.05, child: const Text('🌟', style: TextStyle(fontSize: 100)))),
+        Positioned(bottom: -10, right: -10,
+            child: Opacity(opacity: 0.06, child: const Text('✨', style: TextStyle(fontSize: 90)))),
         // Main content — Positioned.fill gives SafeArea tight constraints
         Positioned.fill(child: SafeArea(
           child: Column(
@@ -220,32 +217,31 @@ class _StoriesScreenState extends State<StoriesScreen> {
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           Container(
                             padding: const EdgeInsets.all(7),
-                            decoration: BoxDecoration(color: const Color(0xFFecdcc8), borderRadius: BorderRadius.circular(10)),
-                            child: const Center(child: Icon(Icons.arrow_back, color: Color(0xFF7B3F00), size: 24)),
+                            decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
+                            child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
                           ),
                           const SizedBox(width: 7),
-                          const Text('Home', style: TextStyle(color: Color(0xFFa08060), fontSize: 13, fontWeight: FontWeight.w700)),
+                          const Text('Home', style: TextStyle(color: Colors.white60, fontSize: 13, fontWeight: FontWeight.w700)),
                         ]),
                       ),
                     ),
                   if (widget.onGoHome != null) const SizedBox(height: 12),
-                  RichText(
-                    text: const TextSpan(children: [
-                      TextSpan(text: '📚 ', style: TextStyle(fontSize: 26)),
-                      TextSpan(text: 'Moral Stories', style: TextStyle(fontFamily: 'serif', fontSize: 26, fontWeight: FontWeight.w700, color: Color(0xFF7B3F00))),
-                    ]),
-                  ),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Image.asset('assets/images/stories_card.png', width: 36, height: 36, fit: BoxFit.contain),
+                    const SizedBox(width: 8),
+                    const Text('Moral Stories', style: TextStyle(fontFamily: 'serif', fontSize: 26, fontWeight: FontWeight.w700, color: Colors.white)),
+                  ]),
                   const SizedBox(height: 4),
                   Text('${_stories.length} stories • Hindi & English voice narration',
-                      style: TextStyle(color: const Color(0xFFa08060).withAlpha(204), fontSize: 13)),
+                      style: const TextStyle(color: Colors.white60, fontSize: 13)),
                   const SizedBox(height: 16),
                   // Language toggle
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFf0e6d3),
+                      color: Colors.white.withAlpha(18),
                       borderRadius: BorderRadius.circular(50),
-                      border: Border.all(color: const Color(0xFFecdcc8), width: 1.5),
+                      border: Border.all(color: Colors.white.withAlpha(25), width: 1.5),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -261,30 +257,30 @@ class _StoriesScreenState extends State<StoriesScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFc4855a).withAlpha(26),
+                      color: Colors.white.withAlpha(14),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFecdcc8)),
+                      border: Border.all(color: Colors.white.withAlpha(25)),
                     ),
                     child: const Row(children: [
                       Text('🔊 ', style: TextStyle(fontSize: 13)),
                       Expanded(child: Text('Tap any story → press ▶ to hear it read aloud. Word-by-word highlighting follows along.',
-                          style: TextStyle(fontSize: 12, color: Color(0xFFa08060)))),
+                          style: const TextStyle(fontSize: 12, color: Colors.white60))),
                     ]),
                   ),
                   const SizedBox(height: 16),
                   // Search
                   TextField(
                     onChanged: (v) => setState(() => _searchQuery = v),
-                    style: const TextStyle(color: Color(0xFF3a2c1a), fontSize: 15),
+                    style: const TextStyle(color: Colors.white, fontSize: 15),
                     decoration: InputDecoration(
                       hintText: '🔍 Search stories...',
-                      hintStyle: const TextStyle(color: Color(0xFFa08060)),
+                      hintStyle: const TextStyle(color: Colors.white60),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Colors.white.withAlpha(18),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFecdcc8))),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFecdcc8))),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF7B3F00))),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withAlpha(40))),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withAlpha(40))),
+                      focusedBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)), borderSide: BorderSide(color: Color(0xFFc4855a), width: 1.5)),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -294,7 +290,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
             // Story cards
             Expanded(
               child: filtered.isEmpty
-                  ? Center(child: Text('No stories found matching "$_searchQuery"', style: const TextStyle(color: Color(0xFFa08060))))
+                  ? Center(child: Text('No stories found matching "$_searchQuery"', style: const TextStyle(color: Colors.white60)))
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(14, 0, 14, 24),
                       itemCount: filtered.length,
@@ -320,7 +316,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
           boxShadow: active ? [const BoxShadow(color: Color(0x5A7B3F00), blurRadius: 12)] : null,
         ),
         child: Text(label,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: active ? Colors.white : const Color(0xFFa08060))),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: active ? Colors.white : Colors.white60)),
       ),
     );
   }
@@ -335,9 +331,9 @@ class _StoriesScreenState extends State<StoriesScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withAlpha(16),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFecdcc8), width: 2),
+          border: Border.all(color: Colors.white.withAlpha(30), width: 1.5),
           boxShadow: [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 8)],
         ),
         child: Stack(
@@ -357,19 +353,19 @@ class _StoriesScreenState extends State<StoriesScreen> {
                 Container(
                   width: 52, height: 52,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFf0e6d3),
+                    color: Colors.white.withAlpha(18),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFecdcc8), width: 1.5),
+                    border: Border.all(color: Colors.white.withAlpha(25), width: 1.5),
                   ),
                   child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.icon, style: const TextStyle(fontSize: 28)))),
                 ),
                 const SizedBox(width: 13),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(v.title,
-                      style: const TextStyle(fontFamily: 'serif', fontSize: 14, color: Color(0xFF7B3F00), fontWeight: FontWeight.w700),
+                      style: const TextStyle(fontFamily: 'serif', fontSize: 14, color: Colors.white, fontWeight: FontWeight.w700),
                       maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 1),
-                  Text(v.tag, style: const TextStyle(fontSize: 12, color: Color(0xFFa08060))),
+                  Text(v.tag, style: const TextStyle(fontSize: 12, color: Colors.white60)),
                   const SizedBox(height: 5),
                   Wrap(spacing: 5, children: [
                     _badge('${v.pages.length} pages'),
@@ -377,7 +373,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                     if (isDone) _badge('✓ Done', done: true),
                   ]),
                 ])),
-                const Text('›', style: TextStyle(fontSize: 20, color: Color(0xFFc4855a))),
+                const Text('›', style: TextStyle(fontSize: 20, color: Colors.white54)),
               ]),
             ),
           ],
@@ -390,12 +386,12 @@ class _StoriesScreenState extends State<StoriesScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        color: done ? const Color(0xFFe8f5e9) : const Color(0xFFf0e6d3),
+        color: done ? const Color(0xFF2E7D32).withAlpha(50) : Colors.white.withAlpha(18),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: done ? const Color(0xFFa5d6a7) : const Color(0xFFecdcc8)),
+        border: Border.all(color: done ? const Color(0xFF4CAF50).withAlpha(150) : Colors.white.withAlpha(25)),
       ),
       child: Text(text,
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: done ? const Color(0xFF388E3C) : const Color(0xFFa08060))),
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: done ? const Color(0xFF4CAF50) : Colors.white60)),
     );
   }
 
@@ -407,8 +403,15 @@ class _StoriesScreenState extends State<StoriesScreen> {
     final isEnd = _page >= total;
 
     return Container(
-      color: const Color(0xFFfdf6ec),
-      child: SafeArea(
+      decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF0f0c29), Color(0xFF1a1035), Color(0xFF0f0c29)])),
+      child: Stack(children: [
+        Positioned(top: -30, right: -30,
+            child: Opacity(opacity: 0.12, child: Image.asset('assets/images/stories_card.png', width: 160, height: 160, fit: BoxFit.contain))),
+        Positioned(bottom: 80, left: -10,
+            child: Opacity(opacity: 0.05, child: const Text('🌟', style: TextStyle(fontSize: 100)))),
+        Positioned(bottom: -10, right: -10,
+            child: Opacity(opacity: 0.06, child: const Text('✨', style: TextStyle(fontSize: 90)))),
+        SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(14, 0, 14, 24),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -418,9 +421,9 @@ class _StoriesScreenState extends State<StoriesScreen> {
               child: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.arrow_back, color: Color(0xFFa08060), size: 24),
+                  Icon(Icons.arrow_back, color: Colors.white60, size: 24),
                   SizedBox(width: 6),
-                  Text('Back to Stories', style: TextStyle(color: Color(0xFFa08060), fontSize: 13, fontWeight: FontWeight.w700)),
+                  Text('Back to Stories', style: TextStyle(color: Colors.white60, fontSize: 13, fontWeight: FontWeight.w700)),
                 ]),
               ),
             ),
@@ -430,12 +433,12 @@ class _StoriesScreenState extends State<StoriesScreen> {
                   style: TextStyle(fontSize: 48, shadows: _playing ? [const Shadow(color: Color(0xFF7B3F00), blurRadius: 8)] : null)),
               const SizedBox(height: 6),
               Text(v.title,
-                  style: const TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF7B3F00))),
+                  style: const TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
               const SizedBox(height: 2),
               Text(
                 isEnd ? (_lang == 'hi' ? 'कहानी पूरी हुई 🎉' : 'Story Complete! 🎉')
                     : '${_lang == 'hi' ? 'पृष्ठ' : 'Page'} ${_page + 1} ${_lang == 'hi' ? 'में से' : 'of'} $total',
-                style: const TextStyle(color: Color(0xFFa08060), fontSize: 13),
+                style: const TextStyle(color: Colors.white60, fontSize: 13),
               ),
             ])),
             const SizedBox(height: 14),
@@ -445,7 +448,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
               child: LinearProgressIndicator(
                 value: isEnd ? 1.0 : (_page + 1) / total,
                 minHeight: 8,
-                backgroundColor: const Color(0xFFf0e6d3),
+                backgroundColor: Colors.white.withAlpha(18),
                 valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFc4855a)),
               ),
             ),
@@ -456,10 +459,10 @@ class _StoriesScreenState extends State<StoriesScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFfff9f2),
+                  color: Colors.white.withAlpha(14),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFecdcc8), width: 1.5),
-                  boxShadow: [BoxShadow(color: Colors.black.withAlpha(18), blurRadius: 24)],
+                  border: Border.all(color: Colors.white.withAlpha(25), width: 1.5),
+                  boxShadow: [BoxShadow(color: Colors.black.withAlpha(40), blurRadius: 24)],
                 ),
                 child: Column(children: [
                   Text(v.pages[_page].scene, style: const TextStyle(fontSize: 36)),
@@ -472,10 +475,9 @@ class _StoriesScreenState extends State<StoriesScreen> {
               Container(
                 padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.white.withAlpha(14),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFecdcc8), width: 1.5),
-                  boxShadow: [BoxShadow(color: Colors.black.withAlpha(13), blurRadius: 10)],
+                  border: Border.all(color: Colors.white.withAlpha(25), width: 1.5),
                 ),
                 child: Column(children: [
                   Row(children: [
@@ -498,14 +500,14 @@ class _StoriesScreenState extends State<StoriesScreen> {
                       Text(_playing ? (_lang == 'hi' ? '🎙️ सुन रहे हैं…' : '🎙️ Narrating…') : (_lang == 'hi' ? '▶ सुनने के लिए दबाएँ' : '▶ Tap to listen'),
                           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3a2c1a))),
                       Text(_lang == 'hi' ? 'हिंदी आवाज़ उपलब्ध' : 'Hindi & English voice',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFFa08060))),
+                          style: const TextStyle(fontSize: 11, color: Colors.white60)),
                     ])),
                   ]),
                   const SizedBox(height: 10),
                   // Speed buttons on their own row — prevents overflow on narrow screens
                   Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     Text(_lang == 'hi' ? 'गति:' : 'Speed:',
-                        style: const TextStyle(fontSize: 11, color: Color(0xFFa08060))),
+                        style: const TextStyle(fontSize: 11, color: Colors.white60)),
                     const SizedBox(width: 6),
                     _spdBtn('0.5×', 0.5),
                     const SizedBox(width: 4),
@@ -524,20 +526,22 @@ class _StoriesScreenState extends State<StoriesScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.white.withAlpha(14),
                     borderRadius: BorderRadius.circular(13),
-                    border: Border.all(color: const Color(0xFFecdcc8), width: 1.5),
+                    border: Border.all(color: Colors.white.withAlpha(25), width: 1.5),
                   ),
                   child: Row(children: [
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      const Text('Auto-advance pages', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF3a2c1a))),
-                      Text('Go to next page when narration ends', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                      const Text('Auto-advance pages', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                      Text('Go to next page when narration ends', style: const TextStyle(fontSize: 11, color: Colors.white60)),
                     ])),
                     Switch(
                       value: _autoAdvance,
                       onChanged: (v) => setState(() => _autoAdvance = v),
-                      activeThumbColor: const Color(0xFF7B3F00),
-                      activeTrackColor: const Color(0xFF7B3F00),
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: const Color(0xFF6C63FF),
+                      inactiveThumbColor: Colors.white60,
+                      inactiveTrackColor: Colors.white.withAlpha(40),
                     ),
                   ]),
                 ),
@@ -586,16 +590,16 @@ class _StoriesScreenState extends State<StoriesScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFfff9f2),
+                  color: Colors.white.withAlpha(14),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFecdcc8), width: 2),
+                  border: Border.all(color: Colors.white.withAlpha(25), width: 1.5),
                 ),
                 child: Column(children: [
                   const Text('🎉', style: TextStyle(fontSize: 48)),
                   const SizedBox(height: 7),
                   RichText(
                     text: TextSpan(
-                      style: const TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF7B3F00)),
+                      style: const TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white),
                       children: [
                         TextSpan(text: _lang == 'hi' ? 'बहुत बढ़िया! ' : 'Well done! '),
                         const TextSpan(text: '🎉', style: TextStyle(fontFamily: null)),
@@ -604,7 +608,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(_lang == 'hi' ? 'आपने यह कहानी पूरी की!' : 'You finished this story!',
-                      style: const TextStyle(color: Color(0xFFa08060), fontSize: 13)),
+                      style: const TextStyle(color: Colors.white60, fontSize: 13)),
                   const SizedBox(height: 12),
                   const Text('⭐⭐⭐', style: TextStyle(fontSize: 28, letterSpacing: 4)),
                 ]),
@@ -619,11 +623,11 @@ class _StoriesScreenState extends State<StoriesScreen> {
                       ? () { _stopSpeech(); setState(() { _openStory = null; }); }
                       : (_page > 0 ? () => _goPage(-1) : null),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFf0e6d3),
-                    foregroundColor: const Color(0xFF7B3F00),
-                    disabledBackgroundColor: const Color(0xFFf0e6d3).withAlpha(128),
+                    backgroundColor: Colors.white.withAlpha(18),
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.white.withAlpha(10),
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFecdcc8), width: 1.5)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: Colors.white.withAlpha(30), width: 1.5)),
                     elevation: 0,
                   ),
                   child: Text(
@@ -662,6 +666,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
           ]),
         ),
       ),
+      ]),    // Stack
     );
   }
 
@@ -677,9 +682,9 @@ class _StoriesScreenState extends State<StoriesScreen> {
         decoration: BoxDecoration(
           color: sel ? const Color(0xFF7B3F00) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: sel ? const Color(0xFF7B3F00) : const Color(0xFFecdcc8), width: 1.5),
+          border: Border.all(color: sel ? const Color(0xFF7B3F00) : Colors.white.withAlpha(25), width: 1.5),
         ),
-        child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: sel ? Colors.white : const Color(0xFFa08060))),
+        child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: sel ? Colors.white : Colors.white60)),
       ),
     );
   }
@@ -710,7 +715,7 @@ class _HighlightedText extends StatelessWidget {
   Widget build(BuildContext context) {
     if (words.isEmpty || highlightIdx < 0) {
       return Text(text,
-          style: TextStyle(fontSize: isHindi ? 17 : 16, height: isHindi ? 2.15 : 1.9, color: const Color(0xFF3a2c1a)));
+          style: TextStyle(fontSize: isHindi ? 17 : 16, height: isHindi ? 2.15 : 1.9, color: Colors.white));
     }
 
     final spans = <InlineSpan>[];
@@ -737,7 +742,7 @@ class _HighlightedText extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: TextStyle(fontSize: isHindi ? 17 : 16, height: isHindi ? 2.15 : 1.9, color: const Color(0xFF3a2c1a)),
+        style: TextStyle(fontSize: isHindi ? 17 : 16, height: isHindi ? 2.15 : 1.9, color: Colors.white),
         children: spans,
       ),
     );

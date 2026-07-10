@@ -172,33 +172,26 @@ class _AbcScreenState extends State<AbcScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget screen;
     switch (_view) {
       case AbcView.trace:
-        return _TraceScreen(
-          idx: _selectedIdx ?? 0,
-          onBack: () => setState(() => _view = AbcView.grid),
-        );
+        screen = _TraceScreen(idx: _selectedIdx ?? 0, onBack: () => setState(() => _view = AbcView.grid));
+        break;
       case AbcView.quiz:
-        return _QuizScreen(
-          questions: _quizQs,
-          current: _qCur,
-          score: _qScore,
-          chosenIdx: _chosenIdx,
-          answered: _qAnswered,
-          onAnswer: _answerQuiz,
-          onClose: () => setState(() => _view = AbcView.grid),
-        );
+        screen = _QuizScreen(questions: _quizQs, current: _qCur, score: _qScore, chosenIdx: _chosenIdx, answered: _qAnswered, onAnswer: _answerQuiz, onClose: () => setState(() => _view = AbcView.grid));
+        break;
       case AbcView.result:
-        return _ResultScreen(
-          score: _qScore,
-          best: _quizBest,
-          learned: _learned.length,
-          onHome: () => setState(() => _view = AbcView.grid),
-          onRetry: _startQuiz,
-        );
+        screen = _ResultScreen(score: _qScore, best: _quizBest, learned: _learned.length, onHome: () => setState(() => _view = AbcView.grid), onRetry: _startQuiz);
+        break;
       case AbcView.grid:
-        return _buildGrid();
+        screen = _buildGrid();
+        break;
     }
+    return Stack(children: [
+      screen,
+      Positioned(top: -30, right: -30, child: IgnorePointer(child: Opacity(opacity: 0.12, child: Image.asset('assets/images/abc_card.png', width: 160, height: 160, fit: BoxFit.contain)))),
+      Positioned(bottom: -10, right: -10, child: IgnorePointer(child: Opacity(opacity: 0.06, child: const Text('✨', style: TextStyle(fontSize: 90))))),
+    ]);
   }
 
   Widget _buildGrid() {
@@ -224,13 +217,17 @@ class _AbcScreenState extends State<AbcScreen> {
                     const Spacer(),
                   ]),
                   const SizedBox(height: 6),
-                  ShaderMask(
-                    shaderCallback: (b) => const LinearGradient(
-                      colors: [Color(0xFFFFD93D), Color(0xFFFF6B6B), Color(0xFF6BCB77), Color(0xFF4D96FF), Color(0xFFc471f5)],
-                    ).createShader(b),
-                    child: const Text('🔤 ABC & Phonics Pro',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
-                  ),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Image.asset('assets/images/abc_card.png', width: 32, height: 32, fit: BoxFit.contain),
+                    const SizedBox(width: 8),
+                    ShaderMask(
+                      shaderCallback: (b) => const LinearGradient(
+                        colors: [Color(0xFFFFD93D), Color(0xFFFF6B6B), Color(0xFF6BCB77), Color(0xFF4D96FF), Color(0xFFc471f5)],
+                      ).createShader(b),
+                      child: const Text('ABC & Phonics Pro',
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
+                    ),
+                  ]),
                   const SizedBox(height: 3),
                   Text('Tap · Hear · Trace · Quiz — Learn all 26 letters!',
                       style: TextStyle(color: Colors.white.withAlpha(115), fontSize: 12)),

@@ -126,7 +126,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🧩', style: TextStyle(fontSize: 44)),
+              Image.asset('assets/images/puzzle_card.png', width: 60, height: 60, fit: BoxFit.contain),
               const SizedBox(height: 6),
               const Text('How to Play',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
@@ -244,22 +244,30 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
           colors: [Color(0xFF6C3483), Color(0xFF1F618D), Color(0xFF148F77)],
         ),
       ),
-      child: SafeArea(
-        child: Column(children: [
-          _header(),
-          const SizedBox(height: 8),
-          _scenePicker(),
-          const SizedBox(height: 6),
-          _sizePicker(),
-          const SizedBox(height: 6),
-          _statusBar(),
-          Expanded(child: Center(child: _gridArea())),
-          if (_won) _winBanner(),
-          const SizedBox(height: 12),
-          _bottomBar(),
-          const SizedBox(height: 16),
-        ]),
-      ),
+      child: Stack(children: [
+        Positioned(top: -30, right: -30,
+            child: Opacity(opacity: 0.12, child: Image.asset('assets/images/puzzle_card.png', width: 160, height: 160, fit: BoxFit.contain))),
+        Positioned(bottom: 80, left: -10,
+            child: Opacity(opacity: 0.05, child: const Text('🌟', style: TextStyle(fontSize: 100)))),
+        Positioned(bottom: -10, right: -10,
+            child: Opacity(opacity: 0.06, child: const Text('✨', style: TextStyle(fontSize: 90)))),
+        SafeArea(
+          child: Column(children: [
+            _header(),
+            const SizedBox(height: 8),
+            _scenePicker(),
+            const SizedBox(height: 6),
+            _sizePicker(),
+            const SizedBox(height: 6),
+            _statusBar(),
+            Expanded(child: Center(child: _gridArea())),
+            if (_won) _winBanner(),
+            const SizedBox(height: 12),
+            _bottomBar(),
+            const SizedBox(height: 16),
+          ]),
+        ),
+      ]),
     );
   }
 
@@ -306,7 +314,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
           ),
         ),
         const SizedBox(width: 10),
-        const Text('🧩', style: TextStyle(fontSize: 22)),
+        Image.asset('assets/images/puzzle_card.png', width: 30, height: 30, fit: BoxFit.contain),
         const SizedBox(width: 6),
         const Expanded(child: Text('Puzzle Pieces',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white))),
@@ -317,8 +325,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             color: Colors.white.withAlpha(18),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text('🔀 $_moves',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFFFFD93D))),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Image.asset('assets/images/shuffle_card.png', width: 26, height: 26, fit: BoxFit.contain),
+            const SizedBox(width: 5),
+            Text('$_moves', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFFFFD93D))),
+          ]),
         ),
         const SizedBox(width: 8),
         // Help button
@@ -539,8 +550,13 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
-          child: Text(_won ? '🔄 New Puzzle' : '🔀 Shuffle Again',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Image.asset('assets/images/shuffle_card.png', width: 28, height: 28, fit: BoxFit.contain,
+                color: const Color(0xFF0d1b2a), colorBlendMode: BlendMode.srcIn),
+            const SizedBox(width: 8),
+            Text(_won ? 'New Puzzle' : 'Shuffle Again',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+          ]),
         ),
       ),
     );

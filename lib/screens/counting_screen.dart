@@ -149,7 +149,14 @@ class _CountingScreenState extends State<CountingScreen>
           colors: [Color(0xFF1a0533), Color(0xFF2d1b69), Color(0xFF11998e)],
         ),
       ),
-      child: SafeArea(
+      child: Stack(children: [
+        Positioned(top: -30, right: -30,
+            child: Opacity(opacity: 0.12, child: Image.asset('assets/images/counting_card.png', width: 160, height: 160, fit: BoxFit.contain))),
+        Positioned(bottom: 80, left: -10,
+            child: Opacity(opacity: 0.05, child: const Text('🌟', style: TextStyle(fontSize: 100)))),
+        Positioned(bottom: -10, right: -10,
+            child: Opacity(opacity: 0.06, child: const Text('✨', style: TextStyle(fontSize: 90)))),
+        SafeArea(
         child: Column(children: [
           _buildHeader(),
           const SizedBox(height: 10),
@@ -163,6 +170,7 @@ class _CountingScreenState extends State<CountingScreen>
           const SizedBox(height: 28),
         ]),
       ),
+      ]),
     );
   }
 
@@ -179,7 +187,7 @@ class _CountingScreenState extends State<CountingScreen>
           ),
         ),
         const SizedBox(width: 10),
-        const Text('🔢', style: TextStyle(fontSize: 22)),
+        Image.asset('assets/images/counting_card.png', width: 30, height: 30, fit: BoxFit.contain),
         const SizedBox(width: 6),
         const Expanded(child: Text('Counting Fun',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white))),

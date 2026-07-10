@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/badge_service.dart';
 import '../utils/daily_challenge_service.dart';
@@ -388,7 +389,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             border: Border.all(color: const Color(0xFFFFD93D).withAlpha(60)),
           ),
           child: Row(children: [
-            const Text('🏅', style: TextStyle(fontSize: 22)),
+            Image.asset('assets/images/trophy_card.png', width: 48, height: 48, fit: BoxFit.contain),
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Text('Trophy Room',
@@ -501,48 +502,56 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         children: [
           _gridCard(
             emoji: '🔤', name: 'ABC & Phonics',
+            imagePath: 'assets/images/abc_card.png',
             colors: [const Color(0xFFFF6B6B), const Color(0xFFFF8E53)],
             progress: abcScore,
             onTap: () => widget.onTabSelected(1),
           ),
           _gridCard(
             emoji: '🔢', name: 'Math Quiz',
+            imagePath: 'assets/images/math_card.png',
             colors: [const Color(0xFFFFD93D), const Color(0xFFFF922B)],
             progress: mathScore,
             onTap: () => widget.onTabSelected(2),
           ),
           _gridCard(
             emoji: '📚', name: 'Moral Stories',
+            imagePath: 'assets/images/stories_card.png',
             colors: [const Color(0xFFc4855a), const Color(0xFF7B3F00)],
             progress: storiesRead != '—' ? '$storiesRead read' : null,
             onTap: () => widget.onTabSelected(3),
           ),
           _gridCard(
             emoji: '🃏', name: 'Memory Match',
+            imagePath: 'assets/images/memory_card.png',
             colors: [const Color(0xFF845EF7), const Color(0xFFD63ECA)],
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => MemoryGameScreen(onBack: () => Navigator.pop(context)))),
           ),
           _gridCard(
             emoji: '🔡', name: 'Word Builder',
+            imagePath: 'assets/images/word_card.png',
             colors: [const Color(0xFF20C997), const Color(0xFF12B886)],
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => WordBuilderScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
           ),
           _gridCard(
             emoji: '🔢', name: 'Counting Fun',
+            imagePath: 'assets/images/counting_card.png',
             colors: [const Color(0xFF4D96FF), const Color(0xFF228BE6)],
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => CountingScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
           ),
           _gridCard(
             emoji: '🎨', name: 'Coloring Book',
+            imagePath: 'assets/images/coloring_card.png',
             colors: [const Color(0xFFFF80AB), const Color(0xFFE91E8C)],
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => ColoringBookScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
           ),
           _gridCard(
             emoji: '🧩', name: 'Puzzle Pieces',
+            imagePath: 'assets/images/puzzle_card.png',
             colors: [const Color(0xFFFF922B), const Color(0xFFFC5C7D)],
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => PuzzleScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
@@ -558,6 +567,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     required List<Color> colors,
     required VoidCallback onTap,
     String? progress,
+    String? imagePath,
   }) {
     return TapScale(
       onTap: () { _sfx.play(SoundType.tap); onTap(); },
@@ -594,7 +604,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           Center(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Text(emoji, style: const TextStyle(fontSize: 52)),
+              if (imagePath != null)
+                Image.asset(imagePath, width: 80, height: 80, fit: BoxFit.contain)
+              else
+                Text(emoji, style: const TextStyle(fontSize: 52)),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -632,7 +645,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             border: Border.all(color: Colors.white.withAlpha(22)),
           ),
           child: Row(children: [
-            const Text('👨‍👩‍👧', style: TextStyle(fontSize: 22)),
+            SvgPicture.asset('assets/images/parent_card.svg', width: 30, height: 30, fit: BoxFit.contain),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Text('Parent Dashboard',

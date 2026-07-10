@@ -238,13 +238,19 @@ class _MathScreenState extends State<MathScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget screen;
     switch (_view) {
-      case MathView.modeSelect: return _buildModeSelect();
-      case MathView.settings:   return _buildSettings();
-      case MathView.quiz:       return _buildQuiz();
-      case MathView.blitz:      return _buildBlitz();
-      case MathView.result:     return _buildResult();
+      case MathView.modeSelect: screen = _buildModeSelect(); break;
+      case MathView.settings:   screen = _buildSettings();   break;
+      case MathView.quiz:       screen = _buildQuiz();       break;
+      case MathView.blitz:      screen = _buildBlitz();      break;
+      case MathView.result:     screen = _buildResult();     break;
     }
+    return Stack(children: [
+      screen,
+      Positioned(top: -30, right: -30, child: IgnorePointer(child: Opacity(opacity: 0.12, child: Image.asset('assets/images/math_card.png', width: 160, height: 160, fit: BoxFit.contain)))),
+      Positioned(bottom: -10, right: -10, child: IgnorePointer(child: Opacity(opacity: 0.06, child: const Text('✨', style: TextStyle(fontSize: 90))))),
+    ]);
   }
 
   // ── Mode Select ──
@@ -283,7 +289,7 @@ class _MathScreenState extends State<MathScreen> {
                       ),
                     ),
                   if (widget.onGoHome != null) const SizedBox(height: 14),
-                  const Text('🔢', style: TextStyle(fontSize: 40)),
+                  Image.asset('assets/images/math_card.png', width: 80, height: 80, fit: BoxFit.contain),
                   const SizedBox(height: 5),
                   ShaderMask(
                     shaderCallback: (b) => const LinearGradient(colors: [Color(0xFFFFD93D), Color(0xFFFF6B6B)]).createShader(b),

@@ -229,7 +229,14 @@ class _ColoringBookScreenState extends State<ColoringBookScreen> {
           colors: [Color(0xFF1a0533), Color(0xFF2d1b69)],
         ),
       ),
-      child: SafeArea(
+      child: Stack(children: [
+        Positioned(top: -30, right: -30,
+            child: Opacity(opacity: 0.12, child: Image.asset('assets/images/coloring_card.png', width: 160, height: 160, fit: BoxFit.contain))),
+        Positioned(bottom: 80, left: -10,
+            child: Opacity(opacity: 0.05, child: const Text('🌟', style: TextStyle(fontSize: 100)))),
+        Positioned(bottom: -10, right: -10,
+            child: Opacity(opacity: 0.06, child: const Text('✨', style: TextStyle(fontSize: 90)))),
+        SafeArea(
         child: Column(children: [
           _header(),
           const SizedBox(height: 8),
@@ -243,6 +250,7 @@ class _ColoringBookScreenState extends State<ColoringBookScreen> {
           const SizedBox(height: 14),
         ]),
       ),
+      ]),
     );
   }
 
@@ -259,7 +267,7 @@ class _ColoringBookScreenState extends State<ColoringBookScreen> {
           ),
         ),
         const SizedBox(width: 10),
-        const Text('🎨', style: TextStyle(fontSize: 22)),
+        Image.asset('assets/images/coloring_card.png', width: 30, height: 30, fit: BoxFit.contain),
         const SizedBox(width: 6),
         const Expanded(child: Text('Coloring Book',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white))),

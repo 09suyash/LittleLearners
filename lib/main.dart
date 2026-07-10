@@ -116,21 +116,25 @@ class _MainShellState extends State<MainShell> {
         unselectedItemColor: Colors.white38,
         selectedFontSize: 10,
         unselectedFontSize: 10,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('🏠', style: TextStyle(fontSize: 22, decoration: TextDecoration.none))),
+            icon: Opacity(opacity: 0.45, child: Image.asset('assets/images/trophy_card.png', width: 30, height: 30, fit: BoxFit.contain)),
+            activeIcon: Image.asset('assets/images/home_card.png', width: 30, height: 30, fit: BoxFit.contain),
             label: 'HOME',
           ),
           BottomNavigationBarItem(
-            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('🔤', style: TextStyle(fontSize: 22, decoration: TextDecoration.none))),
+            icon: Opacity(opacity: 0.45, child: Image.asset('assets/images/abc_card.png', width: 30, height: 30, fit: BoxFit.contain)),
+            activeIcon: Image.asset('assets/images/abc_card.png', width: 30, height: 30, fit: BoxFit.contain),
             label: 'ABC',
           ),
           BottomNavigationBarItem(
-            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('🔢', style: TextStyle(fontSize: 22, decoration: TextDecoration.none))),
+            icon: Opacity(opacity: 0.45, child: Image.asset('assets/images/math_card.png', width: 30, height: 30, fit: BoxFit.contain)),
+            activeIcon: Image.asset('assets/images/math_card.png', width: 30, height: 30, fit: BoxFit.contain),
             label: 'MATH',
           ),
           BottomNavigationBarItem(
-            icon: Padding(padding: EdgeInsets.only(bottom: 2), child: Text('📚', style: TextStyle(fontSize: 22, decoration: TextDecoration.none))),
+            icon: Opacity(opacity: 0.45, child: Image.asset('assets/images/stories_card.png', width: 30, height: 30, fit: BoxFit.contain)),
+            activeIcon: Image.asset('assets/images/stories_card.png', width: 30, height: 30, fit: BoxFit.contain),
             label: 'STORIES',
           ),
         ],
