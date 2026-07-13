@@ -34,6 +34,7 @@ class _CountingScreenState extends State<CountingScreen>
   bool _showResult = false;
 
   // Question state
+  late List<int>   _roundCounts; // pre-shuffled counts for the current round, avoids repeats
   late int         _count;
   late String      _emoji;
   late List<int>   _choices;
@@ -64,8 +65,27 @@ class _CountingScreenState extends State<CountingScreen>
     super.dispose();
   }
 
+  // Builds a round's worth of counts by cycling through shuffled 1.._maxCount
+  // chunks, avoiding an immediate repeat across chunk boundaries — spreads
+  // counts evenly instead of drawing independently (which repeats a lot when
+  // _maxCount is small, e.g. easy mode's 1-5 range over 10 questions).
+  List<int> _buildRoundCounts() {
+    final pool = <int>[];
+    while (pool.length < _roundSize) {
+      final chunk = List.generate(_maxCount, (i) => i + 1)..shuffle(_rng);
+      if (pool.isNotEmpty && chunk.length > 1 && chunk.first == pool.last) {
+        final tmp = chunk[0];
+        chunk[0] = chunk[1];
+        chunk[1] = tmp;
+      }
+      pool.addAll(chunk);
+    }
+    return pool.take(_roundSize).toList();
+  }
+
   void _nextQuestion() {
-    _count    = _rng.nextInt(_maxCount) + 1;
+    if (_qIdx == 0) _roundCounts = _buildRoundCounts();
+    _count    = _roundCounts[_qIdx];
     _emoji    = _dotEmojis[_rng.nextInt(_dotEmojis.length)];
     _choices  = _buildChoices(_count);
     _chosen   = null;

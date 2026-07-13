@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="kids_learning_app"
+        android:label="Zoodles"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

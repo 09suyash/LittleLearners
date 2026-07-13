@@ -295,6 +295,62 @@ class _BadgeToastState extends State<_BadgeToast>
   }
 }
 
+// ── Countdown bar ────────────────────────────────────────────────────────────
+// Shrinking progress bar that flips green→red at 25% remaining.
+// Pass a new `key` (e.g. ValueKey(roundIndex)) to restart it from full.
+class CountdownBar extends StatefulWidget {
+  final int seconds;
+  final void Function(int secondsLeft)? onTick;
+  final VoidCallback onFinish;
+  const CountdownBar({super.key, required this.seconds, this.onTick, required this.onFinish});
+
+  @override
+  State<CountdownBar> createState() => _CountdownBarState();
+}
+
+class _CountdownBarState extends State<CountdownBar> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: Duration(seconds: widget.seconds))
+      ..forward();
+    _ctrl.addListener(() {
+      widget.onTick?.call((widget.seconds - _ctrl.value * widget.seconds).ceil());
+    });
+    _ctrl.addStatusListener((s) {
+      if (s == AnimationStatus.completed) widget.onFinish();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        final pct = 1.0 - _ctrl.value;
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: pct,
+            minHeight: 8,
+            backgroundColor: Colors.white.withAlpha(18),
+            valueColor: AlwaysStoppedAnimation(
+                pct > 0.25 ? const Color(0xFF51CF66) : const Color(0xFFFF6B6B)),
+          ),
+        );
+      },
+    );
+  }
+}
+
 // ── Mascot corner companion ─────────────────────────────────────────────────
 // Drop inside any game screen's Stack. Set celebrating=true on win.
 class MascotCorner extends StatefulWidget {

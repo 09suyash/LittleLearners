@@ -9,16 +9,16 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  runApp(const KidsLearningApp());
+  runApp(const ZoodlesApp());
 }
 
-class KidsLearningApp extends StatelessWidget {
-  const KidsLearningApp({super.key});
+class ZoodlesApp extends StatelessWidget {
+  const ZoodlesApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Little Learners',
+      title: 'Zoodles',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

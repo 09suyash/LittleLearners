@@ -12,6 +12,12 @@ import 'word_builder_screen.dart';
 import 'counting_screen.dart';
 import 'coloring_book_screen.dart';
 import 'puzzle_screen.dart';
+import 'simon_says_screen.dart';
+import 'bubble_pop_screen.dart';
+import 'shape_sorter_screen.dart';
+import 'animal_sound_quiz_screen.dart';
+import 'whack_a_mole_screen.dart';
+import 'maze_runner_screen.dart';
 import 'parent_dashboard_screen.dart';
 import 'daily_challenge_screen.dart';
 import 'badges_screen.dart';
@@ -41,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _dcDone  = false;
   int  _dcStreak = 0;
   int  _badgeCount = 0;
+  int  _mazeLevel = 0;
 
   final _rng = Random();
   final _sfx = SoundService();
@@ -103,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _dcDone    = dcDone;
       _dcStreak  = dcStreak;
       _badgeCount = BadgeService().earned.length;
+      _mazeLevel = prefs.getInt('maze_best_level') ?? 0;
     });
   }
 
@@ -300,13 +308,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Color(0xFFFFD93D), Color(0xFFFF6B6B),
               Color(0xFF6BCB77), Color(0xFF4D96FF),
             ]).createShader(bounds),
-            child: const Text('Little Learners',
+            child: const Text('Zoodles',
                 style: TextStyle(
                     fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white)),
           ),
         const SizedBox(height: 4),
         Text(
-          hasName ? 'Ready to learn and play? 🌟' : '8 fun activities · Tap to start!',
+          hasName ? 'Ready to learn and play? 🌟' : '14 fun activities · Tap to start!',
           style: TextStyle(color: Colors.white.withAlpha(115), fontSize: 13),
         ),
         const SizedBox(height: 10),
@@ -329,6 +337,41 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     fontWeight: FontWeight.w900,
                     color: Color(0xFF1a0533))),
           ]),
+        ),
+        const SizedBox(height: 12),
+        _levelBar(),
+      ]),
+    );
+  }
+
+  // ── Level bar ──────────────────────────────────────────────────────────────
+
+  Widget _levelBar() {
+    final progress  = AppState.levelProgress;
+    final toNext    = AppState.starsToNext;
+    final isMax     = toNext == 0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(
+            '${AppState.levelEmoji} Lv ${AppState.level} · ${AppState.levelName}',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white70),
+          ),
+          Text(
+            isMax ? '🌈 MAX LEVEL' : '$toNext ⭐ to next level',
+            style: TextStyle(fontSize: 11, color: Colors.white.withAlpha(100)),
+          ),
+        ]),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 8,
+            backgroundColor: Colors.white.withAlpha(20),
+            valueColor: const AlwaysStoppedAnimation(Color(0xFF6C63FF)),
+          ),
         ),
       ]),
     );
@@ -555,6 +598,43 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             colors: [const Color(0xFFFF922B), const Color(0xFFFC5C7D)],
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => PuzzleScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
+          ),
+          _gridCard(
+            emoji: '🎯', name: 'Simon Says',
+            colors: [const Color(0xFF6C5CE7), const Color(0xFF00CEC9)],
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => SimonSaysScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
+          ),
+          _gridCard(
+            emoji: '🫧', name: 'Bubble Pop',
+            colors: [const Color(0xFF00B4DB), const Color(0xFF0083B0)],
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => BubblePopScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
+          ),
+          _gridCard(
+            emoji: '🧸', name: 'Shape Sorter',
+            colors: [const Color(0xFFF6D365), const Color(0xFFFDA085)],
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => ShapeSorterScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
+          ),
+          _gridCard(
+            emoji: '🐾', name: 'Animal Sounds',
+            colors: [const Color(0xFF56AB2F), const Color(0xFFA8E063)],
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => AnimalSoundQuizScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
+          ),
+          _gridCard(
+            emoji: '🔨', name: 'Whack-a-Mole',
+            colors: [const Color(0xFFCB356B), const Color(0xFFBD3F32)],
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => WhackAMoleScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
+          ),
+          _gridCard(
+            emoji: '🗺️', name: 'Maze Runner',
+            colors: [const Color(0xFF2C3E50), const Color(0xFF4CA1AF)],
+            progress: _mazeLevel > 0 ? '$_mazeLevel/6' : null,
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => MazeRunnerScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
           ),
         ],
       ),

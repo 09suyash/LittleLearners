@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/letter_data.dart';
+import '../models/letter_stroke_data.dart';
 import '../utils/tts_service.dart';
 import '../utils/badge_service.dart';
 import '../utils/fx.dart';
@@ -556,17 +557,32 @@ class _TraceScreen extends StatefulWidget {
   State<_TraceScreen> createState() => _TraceScreenState();
 }
 
-class _TraceScreenState extends State<_TraceScreen> {
+class _TraceScreenState extends State<_TraceScreen> with SingleTickerProviderStateMixin {
   final List<List<Offset>> _strokes = [];
   List<Offset> _current = [];
   Color _penColor = const Color(0xFFFFD93D);
   bool _showPraise = false;
   int _strokeCount = 0;
 
+  late final AnimationController _guide;
+
   static const _colors = [
     Color(0xFFFFD93D), Color(0xFFFF6B6B), Color(0xFF51CF66),
     Color(0xFF4D96FF), Color(0xFFc471f5),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _guide = AnimationController(vsync: this, duration: const Duration(seconds: 5))
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _guide.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -619,18 +635,22 @@ class _TraceScreenState extends State<_TraceScreen> {
                           if (_strokeCount >= 3) _showPraise = true;
                         });
                       },
-                      child: CustomPaint(
-                        painter: _TracePainter(
-                          letter: d.letter,
-                          strokes: _strokes,
-                          current: _current,
-                          penColor: _penColor,
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(13),
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(color: Colors.white.withAlpha(31)),
+                      child: AnimatedBuilder(
+                        animation: _guide,
+                        builder: (_, __) => CustomPaint(
+                          painter: _TracePainter(
+                            letter: d.letter,
+                            strokes: _strokes,
+                            current: _current,
+                            penColor: _penColor,
+                            guideProgress: _guide.value,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(13),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(color: Colors.white.withAlpha(31)),
+                            ),
                           ),
                         ),
                       ),
@@ -703,27 +723,45 @@ class _TracePainter extends CustomPainter {
   final List<List<Offset>> strokes;
   final List<Offset> current;
   final Color penColor;
+  final double guideProgress; // 0.0–1.0, drives the animated dot
 
-  const _TracePainter({required this.letter, required this.strokes, required this.current, required this.penColor});
+  _TracePainter({
+    required this.letter,
+    required this.strokes,
+    required this.current,
+    required this.penColor,
+    required this.guideProgress,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Draw ghost letter
+    // 1. Ghost letter
     final tp = TextPainter(
-      text: TextSpan(text: letter, style: TextStyle(fontSize: size.width * 0.65, color: Colors.white.withAlpha(33), fontWeight: FontWeight.w900)),
+      text: TextSpan(
+        text: letter,
+        style: TextStyle(
+          fontSize: size.width * 0.65,
+          color: Colors.white.withAlpha(22),
+          fontWeight: FontWeight.w900,
+        ),
+      ),
       textDirection: TextDirection.ltr,
     )..layout();
     tp.paint(canvas, Offset((size.width - tp.width) / 2, (size.height - tp.height) / 2));
 
+    // 2. Guide paths
+    final guide = letterGuide(letter, size);
+    if (guide.isNotEmpty) _paintGuide(canvas, guide);
+
+    // 3. User strokes (on top)
     final paint = Paint()
       ..strokeWidth = 13
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
-
-    for (final stroke in strokes) {
+    for (final s in strokes) {
       paint.color = penColor;
-      _drawStroke(canvas, stroke, paint);
+      _drawStroke(canvas, s, paint);
     }
     if (current.isNotEmpty) {
       paint.color = penColor;
@@ -731,12 +769,77 @@ class _TracePainter extends CustomPainter {
     }
   }
 
+  // ── Guide painting ──────────────────────────────────────────────────────────
+
+  void _paintGuide(Canvas canvas, List<Path> guide) {
+    // Collect the first (and only) PathMetric from each stroke path.
+    final metrics = [for (final p in guide) ...p.computeMetrics().take(1)];
+    if (metrics.isEmpty) return;
+
+    // Dotted path for every stroke
+    final dotPaint = Paint()
+      ..color = Colors.white.withAlpha(55)
+      ..style = PaintingStyle.fill;
+    for (final m in metrics) {
+      double pos = 0;
+      while (pos <= m.length) {
+        final t = m.getTangentForOffset(pos);
+        if (t != null) canvas.drawCircle(t.position, 2.8, dotPaint);
+        pos += 10;
+      }
+    }
+
+    // Stroke-order numbers at the start of each stroke
+    for (int i = 0; i < metrics.length; i++) {
+      final t = metrics[i].getTangentForOffset(0);
+      if (t == null) continue;
+      canvas.drawCircle(
+        t.position, 11,
+        Paint()..color = const Color(0xFFFFD93D)..style = PaintingStyle.fill,
+      );
+      final numTp = TextPainter(
+        text: TextSpan(
+          text: '${i + 1}',
+          style: const TextStyle(
+            color: Color(0xFF1a0533), fontSize: 12, fontWeight: FontWeight.w900,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      numTp.paint(
+        canvas,
+        Offset(t.position.dx - numTp.width / 2, t.position.dy - numTp.height / 2),
+      );
+    }
+
+    // Animated glowing dot
+    final totalLen = metrics.fold(0.0, (double s, m) => s + m.length);
+    final target = guideProgress * totalLen;
+    double cum = 0;
+    for (final m in metrics) {
+      if (cum + m.length >= target) {
+        final local = (target - cum).clamp(0.0, m.length);
+        final t = m.getTangentForOffset(local);
+        if (t != null) {
+          // Outer glow
+          canvas.drawCircle(t.position, 18,
+              Paint()..color = Colors.white.withAlpha(25)..style = PaintingStyle.fill);
+          canvas.drawCircle(t.position, 11,
+              Paint()..color = Colors.white.withAlpha(70)..style = PaintingStyle.fill);
+          // Bright core
+          canvas.drawCircle(t.position, 5,
+              Paint()..color = Colors.white..style = PaintingStyle.fill);
+        }
+        break;
+      }
+      cum += m.length;
+    }
+  }
+
   void _drawStroke(Canvas canvas, List<Offset> pts, Paint paint) {
     if (pts.length < 2) return;
     final path = Path()..moveTo(pts.first.dx, pts.first.dy);
-    for (int i = 1; i < pts.length; i++) {
-      path.lineTo(pts[i].dx, pts[i].dy);
-    }
+    for (int i = 1; i < pts.length; i++) { path.lineTo(pts[i].dx, pts[i].dy); }
     canvas.drawPath(path, paint);
   }
 

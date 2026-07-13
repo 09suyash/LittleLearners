@@ -104,9 +104,26 @@ class _MathScreenState extends State<MathScreen> {
     return s.toList()..shuffle(_rng);
   }
 
+  // Generates [count] questions, avoiding repeating the same displayed
+  // question within a round where the operand pool allows it.
+  List<_MathQuestion> _genUniqueQuestions(int count, MathOp op, Difficulty diff, String missing) {
+    final seen = <String>{};
+    final list = <_MathQuestion>[];
+    int attempts = 0;
+    while (list.length < count && attempts < count * 40) {
+      final q = _genQ(op, diff, missing);
+      attempts++;
+      if (seen.add(q.display)) list.add(q);
+    }
+    while (list.length < count) {
+      list.add(_genQ(op, diff, missing));
+    }
+    return list;
+  }
+
   // ── Start modes ──
   void _startPractice() {
-    _questions = List.generate(_totalQ, (_) => _genQ(_op, _diff, _missingMode));
+    _questions = _genUniqueQuestions(_totalQ, _op, _diff, _missingMode);
     _lastMode = 'practice';
     setState(() {
       _qCur = 0; _score = 0; _streak = 0; _chosenIdx = null; _answered = false; _hintUsed = false; _hintElimIdx = -1;
@@ -116,10 +133,9 @@ class _MathScreenState extends State<MathScreen> {
   }
 
   void _startTables() {
-    _questions = List.generate(10, (_) {
-      final b = _rng.nextInt(12) + 1;
-      return _MathQuestion(display: '$_table × $b', answer: _table * b, choices: _genChoices(_table * b));
-    });
+    final multipliers = List.generate(12, (i) => i + 1)..shuffle(_rng);
+    _questions = multipliers.take(10).map((b) =>
+        _MathQuestion(display: '$_table × $b', answer: _table * b, choices: _genChoices(_table * b))).toList();
     _lastMode = 'tables';
     setState(() {
       _qCur = 0; _score = 0; _streak = 0; _chosenIdx = null; _answered = false; _hintUsed = false; _hintElimIdx = -1;

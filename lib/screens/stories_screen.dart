@@ -40,10 +40,11 @@ class _StoriesScreenState extends State<StoriesScreen> {
     _repo.addListener(_onRepoChanged);
     _loadStories();
     _loadDone();
-    _tts.setCompletionHandler(_onSpeechDone);
+    _tts.setPageCompletionHandler(_onSpeechDone);
     _tts.setProgressHandler((text, start, end, word) {
-      // Find word index matching char position
-      final idx = _words.indexWhere((w) => w.start <= start && start < w.end);
+      // Adjust start by the current segment's offset in the full page text
+      final fullStart = start + _tts.currentOffset;
+      final idx = _words.indexWhere((w) => w.start <= fullStart && fullStart < w.end);
       if (idx >= 0 && mounted) setState(() => _highlightIdx = idx);
     });
   }
@@ -110,7 +111,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
     final text = version.pages[_page].text;
     _buildWords(text);
     setState(() { _playing = true; _highlightIdx = -1; });
-    _tts.speak(text, lang: _lang, rate: _speed);
+    _tts.speakPage(text, lang: _lang, speed: _speed);
   }
 
   void _stopSpeech() {
@@ -232,7 +233,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                     const Text('Moral Stories', style: TextStyle(fontFamily: 'serif', fontSize: 26, fontWeight: FontWeight.w700, color: Colors.white)),
                   ]),
                   const SizedBox(height: 4),
-                  Text('${_stories.length} stories • Hindi & English voice narration',
+                  Text('${_stories.length} stories • Character voices • Hindi & English',
                       style: const TextStyle(color: Colors.white60, fontSize: 13)),
                   const SizedBox(height: 16),
                   // Language toggle
@@ -369,7 +370,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                   const SizedBox(height: 5),
                   Wrap(spacing: 5, children: [
                     _badge('${v.pages.length} pages'),
-                    _badge('🔊 Voice'),
+                    _badge('🎭 Voices'),
                     if (isDone) _badge('✓ Done', done: true),
                   ]),
                 ])),

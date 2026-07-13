@@ -49,6 +49,25 @@ const allBadges = <BadgeDef>[
   // Counting badges
   BadgeDef(id: 'count_first',  emoji: '🔢', name: 'Counter!',       desc: 'Answer your first counting question'),
   BadgeDef(id: 'count_perfect',emoji: '🏅', name: 'Perfect Count',  desc: 'Score 10/10 in Counting Fun'),
+  // Simon Says badges
+  BadgeDef(id: 'simon_first', emoji: '🎯', name: 'Pattern Starter', desc: 'Complete your first Simon Says round'),
+  BadgeDef(id: 'simon_hard',  emoji: '🧠', name: 'Sequence Master', desc: 'Reach the target round on Hard'),
+  // Bubble Pop badges
+  BadgeDef(id: 'bubble_first', emoji: '🫧', name: 'Bubble Buster', desc: 'Finish your first Bubble Pop round'),
+  BadgeDef(id: 'bubble_ace',   emoji: '💧', name: 'Pop Champion',  desc: 'Score 45+ bubbles in one round'),
+  // Shape Sorter badges
+  BadgeDef(id: 'shape_first', emoji: '🧸', name: 'Shape Sorter!', desc: 'Sort all shapes for the first time'),
+  BadgeDef(id: 'shape_hard',  emoji: '🔷', name: 'Shape Master',  desc: 'Sort all shapes on Hard'),
+  // Animal Sound Quiz badges
+  BadgeDef(id: 'animal_first',   emoji: '🐾', name: 'Animal Friend', desc: 'Finish your first Animal Sound Quiz'),
+  BadgeDef(id: 'animal_perfect', emoji: '🐮', name: 'Animal Expert', desc: 'Score 10/10 on Animal Sound Quiz'),
+  // Whack-a-Mole badges
+  BadgeDef(id: 'whack_first', emoji: '🔨', name: 'Mole Whacker', desc: 'Finish your first Whack-a-Mole round'),
+  BadgeDef(id: 'whack_ace',   emoji: '⚡', name: 'Quick Hands',  desc: 'Score 20+ in one Whack-a-Mole round'),
+  // Maze Runner badges
+  BadgeDef(id: 'maze_first',    emoji: '🗺️', name: 'Maze Explorer',   desc: 'Solve your first maze'),
+  BadgeDef(id: 'maze_all',      emoji: '🏰', name: 'Maze Champion',   desc: 'Solve all 6 mazes'),
+  BadgeDef(id: 'maze_endless5', emoji: '🌀', name: 'Endless Wanderer', desc: 'Reach level 5 in Endless Mode'),
   // Explorer badges
   BadgeDef(id: 'all_apps',     emoji: '🚀', name: 'Explorer',       desc: 'Use ABC, Math and Stories'),
   BadgeDef(id: 'super_star',   emoji: '🌈', name: 'Super Star',     desc: 'Earn 10 badges'),

@@ -1,11 +1,11 @@
 {
-    "name": "kids_learning_app",
-    "short_name": "kids_learning_app",
+    "name": "Zoodles",
+    "short_name": "Zoodles",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Zoodles — ABC, Math, Stories & Games for kids.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

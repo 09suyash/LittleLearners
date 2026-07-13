@@ -1,5 +1,5 @@
-name: kids_learning_app
-description: "Little Learners — ABC, Math & Stories for kids."
+name: zoodles
+description: "Zoodles — ABC, Math, Stories & Games for kids."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
