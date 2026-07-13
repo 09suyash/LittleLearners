@@ -7,17 +7,10 @@ import '../utils/daily_challenge_service.dart';
 import '../utils/app_state.dart';
 import '../utils/fx.dart';
 import '../utils/sound_service.dart';
-import 'memory_game_screen.dart';
 import 'word_builder_screen.dart';
 import 'counting_screen.dart';
-import 'coloring_book_screen.dart';
-import 'puzzle_screen.dart';
-import 'simon_says_screen.dart';
-import 'bubble_pop_screen.dart';
-import 'shape_sorter_screen.dart';
 import 'animal_sound_quiz_screen.dart';
-import 'whack_a_mole_screen.dart';
-import 'maze_runner_screen.dart';
+import 'games_screen.dart';
 import 'parent_dashboard_screen.dart';
 import 'daily_challenge_screen.dart';
 import 'badges_screen.dart';
@@ -47,7 +40,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _dcDone  = false;
   int  _dcStreak = 0;
   int  _badgeCount = 0;
-  int  _mazeLevel = 0;
 
   final _rng = Random();
   final _sfx = SoundService();
@@ -110,7 +102,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _dcDone    = dcDone;
       _dcStreak  = dcStreak;
       _badgeCount = BadgeService().earned.length;
-      _mazeLevel = prefs.getInt('maze_best_level') ?? 0;
     });
   }
 
@@ -252,6 +243,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(height: 4),
             _activityGrid(),
             const SizedBox(height: 14),
+            _gamesButton(),
+            const SizedBox(height: 14),
             _parentZoneButton(),
             const SizedBox(height: 16),
             Text('🌟 Made with love for young learners • v1.0',
@@ -278,6 +271,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 22, 16, 14),
       child: Column(children: [
+        Text('ZOODLES',
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 3,
+                color: Colors.white.withAlpha(130))),
+        const SizedBox(height: 6),
         GestureDetector(
           onTap: () {
             final next = (_mascotIdx + 1) % _mascots.length;
@@ -314,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         const SizedBox(height: 4),
         Text(
-          hasName ? 'Ready to learn and play? 🌟' : '14 fun activities · Tap to start!',
+          hasName ? 'Ready to learn and play? 🌟' : '6 subjects + 11 games! Tap to start!',
           style: TextStyle(color: Colors.white.withAlpha(115), fontSize: 13),
         ),
         const SizedBox(height: 10),
@@ -565,13 +565,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             onTap: () => widget.onTabSelected(3),
           ),
           _gridCard(
-            emoji: '🃏', name: 'Memory Match',
-            imagePath: 'assets/images/memory_card.png',
-            colors: [const Color(0xFF845EF7), const Color(0xFFD63ECA)],
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => MemoryGameScreen(onBack: () => Navigator.pop(context)))),
-          ),
-          _gridCard(
             emoji: '🔡', name: 'Word Builder',
             imagePath: 'assets/images/word_card.png',
             colors: [const Color(0xFF20C997), const Color(0xFF12B886)],
@@ -586,55 +579,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 MaterialPageRoute(builder: (_) => CountingScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
           ),
           _gridCard(
-            emoji: '🎨', name: 'Coloring Book',
-            imagePath: 'assets/images/coloring_card.png',
-            colors: [const Color(0xFFFF80AB), const Color(0xFFE91E8C)],
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => ColoringBookScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
-          ),
-          _gridCard(
-            emoji: '🧩', name: 'Puzzle Pieces',
-            imagePath: 'assets/images/puzzle_card.png',
-            colors: [const Color(0xFFFF922B), const Color(0xFFFC5C7D)],
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => PuzzleScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
-          ),
-          _gridCard(
-            emoji: '🎯', name: 'Simon Says',
-            colors: [const Color(0xFF6C5CE7), const Color(0xFF00CEC9)],
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => SimonSaysScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
-          ),
-          _gridCard(
-            emoji: '🫧', name: 'Bubble Pop',
-            colors: [const Color(0xFF00B4DB), const Color(0xFF0083B0)],
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => BubblePopScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
-          ),
-          _gridCard(
-            emoji: '🧸', name: 'Shape Sorter',
-            colors: [const Color(0xFFF6D365), const Color(0xFFFDA085)],
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => ShapeSorterScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
-          ),
-          _gridCard(
             emoji: '🐾', name: 'Animal Sounds',
             colors: [const Color(0xFF56AB2F), const Color(0xFFA8E063)],
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => AnimalSoundQuizScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
-          ),
-          _gridCard(
-            emoji: '🔨', name: 'Whack-a-Mole',
-            colors: [const Color(0xFFCB356B), const Color(0xFFBD3F32)],
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => WhackAMoleScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
-          ),
-          _gridCard(
-            emoji: '🗺️', name: 'Maze Runner',
-            colors: [const Color(0xFF2C3E50), const Color(0xFF4CA1AF)],
-            progress: _mazeLevel > 0 ? '$_mazeLevel/6' : null,
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => MazeRunnerScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
           ),
         ],
       ),
@@ -702,6 +650,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ]),
           ),
         ]),
+      ),
+    );
+  }
+
+  // ── Games ──────────────────────────────────────────────────────────────────
+
+  Widget _gamesButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => GamesScreen(onBack: () => Navigator.pop(context))),
+        ).then((_) => _loadStats()),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFF6C5CE7), Color(0xFFD63ECA)]),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: const [BoxShadow(color: Color(0x446C5CE7), blurRadius: 16)],
+          ),
+          child: Row(children: [
+            const Text('🎮', style: TextStyle(fontSize: 34)),
+            const SizedBox(width: 12),
+            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Games',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+              Text('11 fun games to play!',
+                  style: TextStyle(fontSize: 11, color: Colors.white70)),
+            ])),
+            Text('›', style: TextStyle(fontSize: 22, color: Colors.white.withAlpha(180))),
+          ]),
+        ),
       ),
     );
   }

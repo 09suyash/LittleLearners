@@ -44,6 +44,7 @@ class _WhackAMoleScreenState extends State<WhackAMoleScreen> {
   int _elapsedMs = 0;
   int _lastSpawnMs = 0;
   int _bestScore = 0;
+  bool _sparkle = false;
   Timer? _ticker;
 
   @override
@@ -112,8 +113,14 @@ class _WhackAMoleScreenState extends State<WhackAMoleScreen> {
     setState(() {
       _active.remove(hole);
       _score = (mole.isDecoy ? _score - 1 : _score + 1).clamp(0, 9999);
+      if (!mole.isDecoy) _sparkle = true;
     });
     _sfx.play(mole.isDecoy ? SoundType.buzz : SoundType.pop);
+    if (!mole.isDecoy) {
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (mounted) setState(() => _sparkle = false);
+      });
+    }
   }
 
   Future<void> _endRound() async {
@@ -163,6 +170,7 @@ class _WhackAMoleScreenState extends State<WhackAMoleScreen> {
       ),
       MascotCorner(celebrating: _state == _GameState.finished && _metTarget),
       ConfettiOverlay(trigger: _state == _GameState.finished && _metTarget),
+      SparkleBurst(trigger: _sparkle),
     ]);
   }
 

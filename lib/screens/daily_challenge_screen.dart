@@ -47,6 +47,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen>
 
   @override
   void dispose() {
+    _tts.stop();
     _celebCtrl.dispose();
     super.dispose();
   }

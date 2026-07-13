@@ -42,6 +42,7 @@ class _SimonSaysScreenState extends State<SimonSaysScreen> {
   int _lives = 3;
   int _bestRound = 0;
   int _playToken = 0;
+  bool _sparkle = false;
 
   @override
   void initState() {
@@ -127,7 +128,13 @@ class _SimonSaysScreenState extends State<SimonSaysScreen> {
 
   void _onRoundComplete() {
     _sfx.play(SoundType.chime);
-    setState(() => _state = _GameState.showingSequence);
+    setState(() {
+      _state = _GameState.showingSequence;
+      _sparkle = true;
+    });
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) setState(() => _sparkle = false);
+    });
     Future.delayed(const Duration(milliseconds: 550), () {
       if (!mounted) return;
       _addRoundAndPlay();
@@ -201,6 +208,7 @@ class _SimonSaysScreenState extends State<SimonSaysScreen> {
       ),
       MascotCorner(celebrating: _state == _GameState.won),
       ConfettiOverlay(trigger: _state == _GameState.won),
+      SparkleBurst(trigger: _sparkle),
     ]);
   }
 

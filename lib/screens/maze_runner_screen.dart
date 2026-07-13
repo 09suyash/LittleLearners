@@ -31,6 +31,7 @@ class _MazeRunnerScreenState extends State<MazeRunnerScreen> {
   int _totalStars = 0;
   int _collected = 0;
   int _moves = 0;
+  bool _sparkle = false;
 
   @override
   void initState() {
@@ -116,12 +117,19 @@ class _MazeRunnerScreenState extends State<MazeRunnerScreen> {
       return;
     }
     final cellType = maze.grid[nr][nc];
+    final gotStar = _remainingStars.contains((nr, nc));
     setState(() {
       _playerPos = (nr, nc);
       _moves++;
       if (_remainingStars.remove((nr, nc))) _collected++;
+      if (gotStar) _sparkle = true;
     });
     _sfx.play(cellType == CellType.star ? SoundType.chime : SoundType.tick);
+    if (gotStar) {
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (mounted) setState(() => _sparkle = false);
+      });
+    }
     if (cellType == CellType.goal) _onWin();
   }
 
@@ -191,6 +199,7 @@ class _MazeRunnerScreenState extends State<MazeRunnerScreen> {
       ),
       MascotCorner(celebrating: _state == _GameState.won),
       ConfettiOverlay(trigger: _state == _GameState.won),
+      SparkleBurst(trigger: _sparkle),
     ]);
   }
 

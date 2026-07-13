@@ -39,6 +39,8 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
   int? _selectedIdx;
   int _bestScore = -1;
   int _bestTotal = _totalQuestions;
+  bool _soundBubble = false;
+  bool _sparkle = false;
 
   @override
   void initState() {
@@ -101,7 +103,12 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
   }
 
   void _speakCurrent() {
-    _tts.speak(_quiz[_qIndex].name, rate: 0.5, pitch: 1.0);
+    _sfx.play(SoundType.critter);
+    setState(() => _soundBubble = true);
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (mounted) setState(() => _soundBubble = false);
+    });
+    _tts.speak(_quiz[_qIndex].sound, rate: 0.45, pitch: 1.0);
   }
 
   void _onAnswer(int? choiceIdx) {
@@ -110,9 +117,17 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
     setState(() {
       _answered = true;
       _selectedIdx = choiceIdx;
-      if (correct) _score++;
+      if (correct) {
+        _score++;
+        _sparkle = true;
+      }
     });
     _sfx.play(correct ? SoundType.correct : SoundType.wrong);
+    if (correct) {
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) setState(() => _sparkle = false);
+      });
+    }
     Future.delayed(const Duration(milliseconds: 900), _advance);
   }
 
@@ -169,6 +184,7 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
       ),
       MascotCorner(celebrating: _state == _GameState.finished && _score == _totalQuestions),
       ConfettiOverlay(trigger: _state == _GameState.finished && _score == _totalQuestions),
+      SparkleBurst(trigger: _sparkle),
     ]);
   }
 
@@ -231,7 +247,7 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
             SizedBox(height: 8),
             Text('Listen and Tap!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
             SizedBox(height: 4),
-            Text("We'll say an animal's name — you find it!",
+            Text("We'll make an animal's sound — you find it!",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: Colors.white70)),
           ]),
@@ -264,6 +280,26 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
             SizedBox(height: 4),
             Text('Tap to hear again', style: TextStyle(fontSize: 11, color: Colors.white70)),
           ]),
+        ),
+      ),
+      const SizedBox(height: 10),
+      SizedBox(
+        height: 44,
+        child: Center(
+          child: AnimatedScale(
+            scale: _soundBubble ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.elasticOut,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFFFFD93D), Color(0xFFFF9F43)]),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text('🎵 ${_quiz[_qIndex].sound.toUpperCase()}!',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1a0533))),
+            ),
+          ),
         ),
       ),
       if (_diffIdx == 2) ...[

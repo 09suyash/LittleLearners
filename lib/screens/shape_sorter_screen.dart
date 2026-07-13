@@ -29,6 +29,7 @@ class _ShapeSorterScreenState extends State<ShapeSorterScreen> {
   late List<ShapeData> _trayOrder;
   final Set<String> _placed = {};
   bool _started = false;
+  bool _sparkle = false;
 
   @override
   void initState() {
@@ -50,8 +51,12 @@ class _ShapeSorterScreenState extends State<ShapeSorterScreen> {
     setState(() {
       _placed.add(hole.id);
       _started = true;
+      _sparkle = true;
     });
     _sfx.play(SoundType.correct);
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (mounted) setState(() => _sparkle = false);
+    });
     if (_won) _onWin();
   }
 
@@ -97,6 +102,7 @@ class _ShapeSorterScreenState extends State<ShapeSorterScreen> {
       ),
       MascotCorner(celebrating: _won),
       ConfettiOverlay(trigger: _won),
+      SparkleBurst(trigger: _sparkle),
     ]);
   }
 

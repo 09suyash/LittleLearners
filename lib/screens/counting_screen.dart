@@ -61,6 +61,7 @@ class _CountingScreenState extends State<CountingScreen>
 
   @override
   void dispose() {
+    _tts.stop();
     _shakeCtrl.dispose();
     super.dispose();
   }
@@ -199,7 +200,7 @@ class _CountingScreenState extends State<CountingScreen>
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
       child: Row(children: [
         GestureDetector(
-          onTap: widget.onBack,
+          onTap: () { _tts.stop(); widget.onBack(); },
           child: Container(
             width: 40, height: 40,
             decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
@@ -366,7 +367,7 @@ class _CountingScreenState extends State<CountingScreen>
               )),
               const SizedBox(height: 10),
               SizedBox(width: double.infinity, child: OutlinedButton(
-                onPressed: widget.onBack,
+                onPressed: () { _tts.stop(); widget.onBack(); },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white60,
                   side: const BorderSide(color: Colors.white24),

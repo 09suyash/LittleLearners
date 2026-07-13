@@ -170,6 +170,77 @@ class _ConfettiPainter extends CustomPainter {
   bool shouldRepaint(_ConfettiPainter old) => progress != old.progress;
 }
 
+// ── Sparkle burst ────────────────────────────────────────────────────────────
+// Quick celebratory sparkle burst for a single correct answer/catch/match —
+// lighter and faster than ConfettiOverlay, which is reserved for whole-round
+// completion. Fires on the rising edge of `trigger`, same idiom as
+// ConfettiOverlay. Drop it centered in a Stack over the spot you want it.
+class SparkleBurst extends StatefulWidget {
+  final bool trigger;
+  const SparkleBurst({super.key, required this.trigger});
+
+  @override
+  State<SparkleBurst> createState() => _SparkleBurstState();
+}
+
+class _SparkleBurstState extends State<SparkleBurst> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  final _rng = Random();
+  List<double> _angles = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 450));
+    if (widget.trigger) _fire();
+  }
+
+  @override
+  void didUpdateWidget(SparkleBurst old) {
+    super.didUpdateWidget(old);
+    if (widget.trigger && !old.trigger) _fire();
+  }
+
+  void _fire() {
+    _angles = List.generate(8, (i) => (i / 8) * 2 * pi + _rng.nextDouble() * 0.35);
+    _ctrl
+      ..reset()
+      ..forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (context, _) {
+          if (_ctrl.value <= 0 || _angles.isEmpty) return const SizedBox.shrink();
+          final t = _ctrl.value;
+          final dist = 62 * t;
+          final opacity = (1 - t).clamp(0.0, 1.0);
+          final scale = 0.6 + 0.6 * (1 - t);
+          return Stack(alignment: Alignment.center, children: [
+            for (final a in _angles)
+              Transform.translate(
+                offset: Offset(cos(a), sin(a)) * dist,
+                child: Opacity(
+                  opacity: opacity,
+                  child: Transform.scale(scale: scale, child: const Text('✨', style: TextStyle(fontSize: 20))),
+                ),
+              ),
+          ]);
+        },
+      ),
+    );
+  }
+}
+
 // ── Badge toast ────────────────────────────────────────────────────────────
 // Shows a slide-up card when a badge is newly earned.
 void showBadgeToast(BuildContext context, BadgeDef badge) {

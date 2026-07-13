@@ -66,6 +66,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
 
   @override
   void dispose() {
+    _tts.stop();
     _shakeCtrl.dispose();
     for (final c in _slotCtrl.values) { c.dispose(); }
     super.dispose();

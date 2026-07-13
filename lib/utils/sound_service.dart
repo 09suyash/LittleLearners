@@ -2,7 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 
-enum SoundType { tap, correct, wrong, win, slide, pop, tick, buzz, chime }
+enum SoundType { tap, correct, wrong, win, slide, pop, tick, buzz, chime, chomp, vroom, critter }
 
 class _Note {
   final double freq, dur, amp;
@@ -27,6 +27,9 @@ class SoundService {
     SoundType.tick:    [_Note(660.0,   0.04, 0.30)],
     SoundType.buzz:    [_Note(110.0,   0.22, 0.55)],
     SoundType.chime:   [_Note(784.0,   0.08, 0.50), _Note(988.0, 0.12, 0.55)],
+    SoundType.chomp:   [_Note(180.0,   0.09, 0.50)],
+    SoundType.vroom:   [_Note(140.0,   0.08, 0.40), _Note(180.0, 0.08, 0.45), _Note(230.0, 0.10, 0.50)],
+    SoundType.critter: [_Note(392.0,   0.06, 0.40), _Note(523.25, 0.09, 0.45)],
   };
 
   static const _sampleRate = 22050;

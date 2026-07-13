@@ -68,6 +68,15 @@ const allBadges = <BadgeDef>[
   BadgeDef(id: 'maze_first',    emoji: '🗺️', name: 'Maze Explorer',   desc: 'Solve your first maze'),
   BadgeDef(id: 'maze_all',      emoji: '🏰', name: 'Maze Champion',   desc: 'Solve all 6 mazes'),
   BadgeDef(id: 'maze_endless5', emoji: '🌀', name: 'Endless Wanderer', desc: 'Reach level 5 in Endless Mode'),
+  // Animal Feeding badges
+  BadgeDef(id: 'feed_first', emoji: '🦖', name: "Animal Friend's Helper", desc: 'Finish your first Animal Feeding round'),
+  BadgeDef(id: 'feed_ace',   emoji: '🍖', name: 'Feeding Frenzy',         desc: 'Score 10/10 on Hard'),
+  // Archery badges
+  BadgeDef(id: 'archery_first',   emoji: '🏹', name: 'First Shot', desc: 'Finish your first Archery round'),
+  BadgeDef(id: 'archery_perfect', emoji: '🎯', name: 'Bullseye!',  desc: 'Score 10/10 on Archery'),
+  // Racing badges
+  BadgeDef(id: 'race_first', emoji: '🏁', name: 'Racing Rookie',  desc: 'Finish your first Racing round'),
+  BadgeDef(id: 'race_ace',   emoji: '🏆', name: 'Speed Champion', desc: 'Finish a Hard round with no misses'),
   // Explorer badges
   BadgeDef(id: 'all_apps',     emoji: '🚀', name: 'Explorer',       desc: 'Use ABC, Math and Stories'),
   BadgeDef(id: 'super_star',   emoji: '🌈', name: 'Super Star',     desc: 'Earn 10 badges'),

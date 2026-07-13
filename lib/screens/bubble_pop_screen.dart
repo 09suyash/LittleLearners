@@ -53,6 +53,7 @@ class _BubblePopScreenState extends State<BubblePopScreen> {
   int _lastSpawnMs = 0;
   int _nextId = 0;
   int _bestScore = 0;
+  bool _sparkle = false;
   Timer? _ticker;
 
   @override
@@ -119,8 +120,14 @@ class _BubblePopScreenState extends State<BubblePopScreen> {
     setState(() {
       _bubbles.removeWhere((x) => x.id == b.id);
       _score = (b.isBad ? _score - 1 : _score + 1).clamp(0, 9999);
+      if (!b.isBad) _sparkle = true;
     });
     _sfx.play(b.isBad ? SoundType.buzz : SoundType.pop);
+    if (!b.isBad) {
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (mounted) setState(() => _sparkle = false);
+      });
+    }
   }
 
   Future<void> _endRound() async {
@@ -172,6 +179,7 @@ class _BubblePopScreenState extends State<BubblePopScreen> {
       ),
       MascotCorner(celebrating: _state == _GameState.finished && _metTarget),
       ConfettiOverlay(trigger: _state == _GameState.finished && _metTarget),
+      SparkleBurst(trigger: _sparkle),
     ]);
   }
 
