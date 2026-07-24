@@ -58,7 +58,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen>
     setState(() { _chosenIdx = idx; _answered = true; });
 
     if (correct) {
-      _tts.speak('Correct! Amazing!');
+      final ttsFuture = _tts.speak('Correct! Amazing!');
       await _dcs.markCompleted();
       final streak = await _dcs.getStreak();
       if (mounted) setState(() => _streak = streak);
@@ -68,12 +68,13 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen>
       if (streak >= 3 && mounted) await awardWithToast(context, _bs, 'daily_streak3');
       if (streak >= 7 && mounted) await awardWithToast(context, _bs, 'daily_streak7', stars: 50);
       _celebCtrl.forward(from: 0);
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (mounted) widget.onCompleted();
-      });
+      await ttsFuture;
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (mounted) widget.onCompleted();
     } else {
-      _tts.speak('Try again tomorrow! The answer was ${_challenge.answer}');
+      await _tts.speak('Try again tomorrow! The answer was ${_challenge.answer}');
       await _dcs.markCompleted();
+      await Future.delayed(const Duration(milliseconds: 300));
       if (mounted) widget.onCompleted();
     }
   }
@@ -117,7 +118,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen>
       // Header
       Row(children: [
         GestureDetector(
-          onTap: widget.onBack,
+          onTap: () { _tts.stop(); widget.onBack(); },
           child: Container(
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(9)),
@@ -233,7 +234,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen>
     return Column(children: [
       Row(children: [
         GestureDetector(
-          onTap: widget.onBack,
+          onTap: () { _tts.stop(); widget.onBack(); },
           child: Container(
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(9)),
@@ -273,7 +274,7 @@ class _DailyChallengeScreenState extends State<DailyChallengeScreen>
       SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: widget.onBack,
+          onPressed: () { _tts.stop(); widget.onBack(); },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFFFD93D),
             foregroundColor: const Color(0xFF0d1b2a),

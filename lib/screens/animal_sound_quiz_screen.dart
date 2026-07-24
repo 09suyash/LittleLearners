@@ -189,45 +189,65 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-      child: Row(children: [
-        GestureDetector(
-          onTap: () { _tts.stop(); widget.onBack(); },
-          child: Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
-            child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
-          ),
-        ),
-        const SizedBox(width: 10),
-        const Text('🐾', style: TextStyle(fontSize: 26)),
-        const SizedBox(width: 6),
-        const Expanded(
-          child: Text('Animal Sound Quiz',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
-        ),
-        GestureDetector(
-          onTap: () {
-            if (_state != _GameState.question) {
-              setState(() {
-                _diffIdx = (_diffIdx + 1) % 3;
-                _state = _GameState.idle;
-              });
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha(18),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withAlpha(36)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 180) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: GestureDetector(
+                onTap: () { _tts.stop(); widget.onBack(); },
+                child: Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
+                  child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
+                ),
+              ),
             ),
-            child: Text(_difficulties[_diffIdx],
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFFFD93D))),
-          ),
-        ),
-      ]),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+          child: Row(children: [
+            GestureDetector(
+              onTap: () { _tts.stop(); widget.onBack(); },
+              child: Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
+                child: const Center(child: Icon(Icons.arrow_back, color: Colors.white70, size: 24)),
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Text('🐾', style: TextStyle(fontSize: 26)),
+            const SizedBox(width: 6),
+            const Expanded(
+              child: Text('Animal Sound Quiz',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+            ),
+            GestureDetector(
+              onTap: () {
+                if (_state != _GameState.question) {
+                  setState(() {
+                    _diffIdx = (_diffIdx + 1) % 3;
+                    _state = _GameState.idle;
+                  });
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(18),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white.withAlpha(36)),
+                ),
+                child: Text(_difficulties[_diffIdx],
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFFFD93D))),
+              ),
+            ),
+          ]),
+        );
+      },
     );
   }
 

@@ -428,6 +428,9 @@ class MascotCorner extends StatefulWidget {
   final bool celebrating;
   const MascotCorner({super.key, this.celebrating = false});
 
+  // Global static offset so mascot stays in same position across screens
+  static Offset dragOffset = Offset.zero;
+
   @override
   State<MascotCorner> createState() => _MascotCornerState();
 }
@@ -469,11 +472,20 @@ class _MascotCornerState extends State<MascotCorner>
     return Positioned(
       right: 14,
       bottom: 96 + bottomInset,
-      child: IgnorePointer(
-        child: AnimatedBuilder(
-          animation: _float,
-          builder: (_, child) => Transform.translate(
-            offset: Offset(0, _float.value),
+      child: AnimatedBuilder(
+        animation: _float,
+        builder: (_, child) => Transform.translate(
+          offset: Offset(
+            MascotCorner.dragOffset.dx,
+            MascotCorner.dragOffset.dy + _float.value,
+          ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onPanUpdate: (details) {
+              setState(() {
+                MascotCorner.dragOffset += details.delta;
+              });
+            },
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               if (widget.celebrating)
                 Container(

@@ -522,7 +522,7 @@ class _AnimalFeedingScreenState extends State<AnimalFeedingScreen> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
-            onPressed: widget.onBack,
+            onPressed: () { _tts.stop(); widget.onBack(); },
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white60,
               side: const BorderSide(color: Colors.white24),

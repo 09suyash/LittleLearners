@@ -120,7 +120,7 @@ class _AbcScreenState extends State<AbcScreen> {
     });
   }
 
-  void _answerQuiz(int choiceIdx) {
+  Future<void> _answerQuiz(int choiceIdx) async {
     if (_qAnswered) return;
     final correct = choiceIdx >= 0 && _quizQs[_qCur].choices[choiceIdx] == _quizQs[_qCur].answer;
     setState(() {
@@ -130,12 +130,13 @@ class _AbcScreenState extends State<AbcScreen> {
     });
     if (correct) {
       _sfx.play(SoundType.correct);
-      _tts.speak('Correct! Brilliant!');
+      await _tts.speak('Correct! Brilliant!');
     } else if (choiceIdx >= 0) {
       _sfx.play(SoundType.wrong);
-      _tts.speak('The answer was ${_quizQs[_qCur].answer}');
+      await _tts.speak('The answer was ${_quizQs[_qCur].answer}');
     }
-    Future.delayed(const Duration(milliseconds: 1500), _nextQuestion);
+    await Future.delayed(const Duration(milliseconds: 300));
+    _nextQuestion();
   }
 
   void _nextQuestion() {
@@ -179,10 +180,10 @@ class _AbcScreenState extends State<AbcScreen> {
         screen = _TraceScreen(idx: _selectedIdx ?? 0, onBack: () => setState(() => _view = AbcView.grid));
         break;
       case AbcView.quiz:
-        screen = _QuizScreen(questions: _quizQs, current: _qCur, score: _qScore, chosenIdx: _chosenIdx, answered: _qAnswered, onAnswer: _answerQuiz, onClose: () => setState(() => _view = AbcView.grid));
+        screen = _QuizScreen(questions: _quizQs, current: _qCur, score: _qScore, chosenIdx: _chosenIdx, answered: _qAnswered, onAnswer: _answerQuiz, onClose: () { _tts.stop(); setState(() => _view = AbcView.grid); });
         break;
       case AbcView.result:
-        screen = _ResultScreen(score: _qScore, best: _quizBest, learned: _learned.length, onHome: () => setState(() => _view = AbcView.grid), onRetry: _startQuiz);
+        screen = _ResultScreen(score: _qScore, best: _quizBest, learned: _learned.length, onHome: () { _tts.stop(); setState(() => _view = AbcView.grid); }, onRetry: () { _tts.stop(); _startQuiz(); });
         break;
       case AbcView.grid:
         screen = _buildGrid();
@@ -208,7 +209,7 @@ class _AbcScreenState extends State<AbcScreen> {
                   Row(children: [
                     if (widget.onGoHome != null)
                       GestureDetector(
-                        onTap: widget.onGoHome,
+                        onTap: () { _tts.stop(); widget.onGoHome?.call(); },
                         child: Container(
                           width: 40, height: 40,
                           decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
@@ -494,10 +495,13 @@ class _LetterSheet extends StatelessWidget {
               const SizedBox(width: 7),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    tts.speak(d.letter, rate: 0.7, pitch: 1.3);
-                    for (int i = 0; i < d.words.length; i++) {
-                      Future.delayed(Duration(milliseconds: (i + 1) * 1050), () => tts.speak(d.words[i]));
+                  onPressed: () async {
+                    await tts.stop();
+                    await tts.speak(d.letter, rate: 0.7, pitch: 1.3);
+                    await Future.delayed(const Duration(milliseconds: 300));
+                    for (final w in d.words) {
+                      await tts.speak(w);
+                      await Future.delayed(const Duration(milliseconds: 300));
                     }
                   },
                   style: ElevatedButton.styleFrom(

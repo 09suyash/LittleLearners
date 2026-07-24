@@ -7,6 +7,20 @@ import '../utils/sound_service.dart';
 import '../utils/tts_service.dart';
 import '../utils/app_state.dart';
 
+class _ArrowPathResult {
+  final List<Offset> points;
+  final int? hitTargetIdx;
+  final double totalLength;
+  final List<double> segmentLengths;
+
+  _ArrowPathResult({
+    required this.points,
+    required this.hitTargetIdx,
+    required this.totalLength,
+    required this.segmentLengths,
+  });
+}
+
 enum _GameState { idle, question, finished }
 
 class ArcheryScreen extends StatefulWidget {
@@ -59,8 +73,9 @@ class _ArcheryScreenState extends State<ArcheryScreen> {
   Offset _pullVector = Offset.zero;
 
   bool _arrowFlying = false;
-  Offset _arrowStart = Offset.zero;
-  Offset _arrowEnd = Offset.zero;
+  List<Offset> _arrowPath = [];
+  List<double> _segmentLengths = [];
+  double _totalPathLength = 0.0;
   int _arrowDurationMs = 300;
   int? _pendingHitIdx;
 
@@ -218,37 +233,141 @@ class _ArcheryScreenState extends State<ArcheryScreen> {
     _fire();
   }
 
-  void _fire() {
-    // Aim is direct, not an inverted slingshot pull: drag toward where you
-    // want the arrow to go, release, and it flies that way — simplest and
-    // most intuitive for young kids (point-and-shoot, not draw-and-recoil).
-    final fireDir = Offset.fromDirection(_pullVector.direction);
+  _ArrowPathResult _calculatePath(Offset startPos, Offset initialDir) {
+    final points = <Offset>[startPos];
+    final segmentLengths = <double>[];
+    double totalLength = 0.0;
+
+    Offset currPos = startPos;
+    Offset dir = initialDir;
     int? hitIdx;
-    double bestProj = double.infinity;
-    for (int i = 0; i < _targetPositions.length; i++) {
-      final targetPx = Offset(_targetPositions[i].dx * _areaW, _targetPositions[i].dy * _areaH);
-      final toTarget = targetPx - _bowPos;
-      final proj = toTarget.dx * fireDir.dx + toTarget.dy * fireDir.dy;
-      if (proj <= 0) continue;
-      final closest = _bowPos + fireDir * proj;
-      final perp = (targetPx - closest).distance;
-      if (perp <= _hitRadius && proj < bestProj) {
-        bestProj = proj;
-        hitIdx = i;
+
+    for (int bounce = 0; bounce <= 4; bounce++) {
+      // 1. Target circle hits along current segment
+      double closestTargetT = double.infinity;
+      int? candidateTargetIdx;
+
+      for (int i = 0; i < _targetPositions.length; i++) {
+        final targetPx = Offset(_targetPositions[i].dx * _areaW, _targetPositions[i].dy * _areaH);
+        final toTarget = targetPx - currPos;
+        final proj = toTarget.dx * dir.dx + toTarget.dy * dir.dy;
+        if (proj <= 0) continue;
+
+        final closestOnRay = currPos + dir * proj;
+        final perp = (targetPx - closestOnRay).distance;
+        if (perp <= _hitRadius) {
+          final radical = max(0.0, _hitRadius * _hitRadius - perp * perp);
+          final hitDist = proj - sqrt(radical);
+          final t = hitDist > 0.1 ? hitDist : proj;
+          if (t < closestTargetT && t > 0.1) {
+            closestTargetT = t;
+            candidateTargetIdx = i;
+          }
+        }
+      }
+
+      // 2. Wall boundary hits (left x=0, right x=_areaW, top y=0, bottom y=_areaH)
+      double closestWallT = double.infinity;
+      int wallHitType = 0; // 1=left, 2=right, 3=top, 4=bottom
+
+      if (dir.dx < -1e-5) {
+        final t = (0.0 - currPos.dx) / dir.dx;
+        final hitY = currPos.dy + t * dir.dy;
+        if (t > 0.1 && hitY >= 0 && hitY <= _areaH) {
+          if (t < closestWallT) {
+            closestWallT = t;
+            wallHitType = 1;
+          }
+        }
+      }
+
+      if (dir.dx > 1e-5) {
+        final t = (_areaW - currPos.dx) / dir.dx;
+        final hitY = currPos.dy + t * dir.dy;
+        if (t > 0.1 && hitY >= 0 && hitY <= _areaH) {
+          if (t < closestWallT) {
+            closestWallT = t;
+            wallHitType = 2;
+          }
+        }
+      }
+
+      if (dir.dy < -1e-5) {
+        final t = (0.0 - currPos.dy) / dir.dy;
+        final hitX = currPos.dx + t * dir.dx;
+        if (t > 0.1 && hitX >= 0 && hitX <= _areaW) {
+          if (t < closestWallT) {
+            closestWallT = t;
+            wallHitType = 3;
+          }
+        }
+      }
+
+      if (dir.dy > 1e-5) {
+        final t = (_areaH - currPos.dy) / dir.dy;
+        final hitX = currPos.dx + t * dir.dx;
+        if (t > 0.1 && hitX >= 0 && hitX <= _areaW) {
+          if (t < closestWallT) {
+            closestWallT = t;
+            wallHitType = 4;
+          }
+        }
+      }
+
+      // 3. Resolve nearest collision
+      if (candidateTargetIdx != null && closestTargetT <= closestWallT) {
+        final hitPos = currPos + dir * closestTargetT;
+        points.add(hitPos);
+        final segLen = (hitPos - currPos).distance;
+        segmentLengths.add(segLen);
+        totalLength += segLen;
+        hitIdx = candidateTargetIdx;
+        break;
+      } else if (closestWallT < double.infinity && wallHitType != 0) {
+        final wallHitPos = currPos + dir * closestWallT;
+        points.add(wallHitPos);
+        final segLen = (wallHitPos - currPos).distance;
+        segmentLengths.add(segLen);
+        totalLength += segLen;
+        currPos = wallHitPos;
+
+        if (wallHitType == 1 || wallHitType == 2) {
+          dir = Offset(-dir.dx, dir.dy);
+        } else {
+          dir = Offset(dir.dx, -dir.dy);
+        }
+      } else {
+        final maxTravel = sqrt(_areaW * _areaW + _areaH * _areaH);
+        final endPos = currPos + dir * maxTravel;
+        points.add(endPos);
+        final segLen = (endPos - currPos).distance;
+        segmentLengths.add(segLen);
+        totalLength += segLen;
+        break;
       }
     }
-    final travel = sqrt(_areaW * _areaW + _areaH * _areaH);
-    final endPoint = hitIdx != null ? _bowPos + fireDir * bestProj : _bowPos + fireDir * travel;
-    final dist = (endPoint - _bowPos).distance;
+
+    return _ArrowPathResult(
+      points: points,
+      hitTargetIdx: hitIdx,
+      totalLength: totalLength,
+      segmentLengths: segmentLengths,
+    );
+  }
+
+  void _fire() {
+    final fireDir = Offset.fromDirection(_pullVector.direction);
+    final res = _calculatePath(_bowPos, fireDir);
 
     setState(() {
       _answered = true;
       _pullVector = Offset.zero;
-      _arrowStart = _bowPos;
-      _arrowEnd = endPoint;
-      _arrowDurationMs = (dist / 1400 * 1000).clamp(150, 500).round();
+      _arrowPath = res.points;
+      _segmentLengths = res.segmentLengths;
+      _totalPathLength = res.totalLength;
+      _arrowDurationMs = (res.totalLength / 1400 * 1000).clamp(200, 750).round();
       _arrowFlying = true;
-      _pendingHitIdx = hitIdx;
+      _pendingHitIdx = res.hitTargetIdx;
     });
   }
 
@@ -449,6 +568,31 @@ class _ArcheryScreenState extends State<ArcheryScreen> {
     ]);
   }
 
+  (Offset, double) _getPosAndAngleAtPathProgress(double progress) {
+    if (_arrowPath.isEmpty) return (Offset.zero, 0.0);
+    if (_arrowPath.length == 1 || _totalPathLength <= 0) return (_arrowPath.first, 0.0);
+
+    final targetDist = progress * _totalPathLength;
+    double accumulated = 0.0;
+
+    for (int i = 0; i < _segmentLengths.length; i++) {
+      final segLen = _segmentLengths[i];
+      if (accumulated + segLen >= targetDist || i == _segmentLengths.length - 1) {
+        final segProgress = segLen > 0 ? (targetDist - accumulated) / segLen : 1.0;
+        final clampedSegProg = segProgress.clamp(0.0, 1.0);
+        final p1 = _arrowPath[i];
+        final p2 = _arrowPath[i + 1];
+        final currentPos = Offset.lerp(p1, p2, clampedSegProg)!;
+        final angle = (p2 - p1).direction + pi / 2;
+        return (currentPos, angle);
+      }
+      accumulated += segLen;
+    }
+    final pLast = _arrowPath.last;
+    final pPrev = _arrowPath[_arrowPath.length - 2];
+    return (pLast, (pLast - pPrev).direction + pi / 2);
+  }
+
   Widget _buildRange() {
     return LayoutBuilder(builder: (context, c) {
       _areaW = c.maxWidth;
@@ -465,22 +609,31 @@ class _ArcheryScreenState extends State<ArcheryScreen> {
             child: Stack(children: [
               for (int i = 0; i < _targets.length; i++) _buildTargetAt(i),
               if (_dragging)
-                CustomPaint(size: Size(_areaW, _areaH), painter: _AimPainter(_bowPos, _pullVector)),
+                CustomPaint(
+                  size: Size(_areaW, _areaH),
+                  painter: _AimPainter(
+                    _calculatePath(_bowPos, Offset.fromDirection(_pullVector.direction)).points,
+                  ),
+                ),
               _buildBow(),
-              if (_arrowFlying)
-                TweenAnimationBuilder<Offset>(
+              if (_arrowFlying && _arrowPath.isNotEmpty)
+                TweenAnimationBuilder<double>(
                   key: ValueKey('arrow_$_qIndex'),
-                  tween: Tween(begin: _arrowStart, end: _arrowEnd),
+                  tween: Tween(begin: 0.0, end: 1.0),
                   duration: Duration(milliseconds: _arrowDurationMs),
                   curve: Curves.easeOut,
                   onEnd: _onArrowLanded,
-                  builder: (context, pos, child) => Positioned(
-                    left: pos.dx - 12, top: pos.dy - 12,
-                    child: Transform.rotate(
-                      angle: (_arrowEnd - _arrowStart).direction + pi / 2,
-                      child: const Text('➶', style: TextStyle(fontSize: 26)),
-                    ),
-                  ),
+                  builder: (context, progress, child) {
+                    final (pos, angle) = _getPosAndAngleAtPathProgress(progress);
+                    return Positioned(
+                      left: pos.dx - 12,
+                      top: pos.dy - 12,
+                      child: Transform.rotate(
+                        angle: angle,
+                        child: const Text('➶', style: TextStyle(fontSize: 26)),
+                      ),
+                    );
+                  },
                 ),
             ]),
           ),
@@ -589,7 +742,7 @@ class _ArcheryScreenState extends State<ArcheryScreen> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
-            onPressed: widget.onBack,
+            onPressed: () { _tts.stop(); widget.onBack(); },
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white60,
               side: const BorderSide(color: Colors.white24),
@@ -605,24 +758,37 @@ class _ArcheryScreenState extends State<ArcheryScreen> {
 }
 
 class _AimPainter extends CustomPainter {
-  final Offset bow;
-  final Offset pull;
-  const _AimPainter(this.bow, this.pull);
+  final List<Offset> pathPoints;
+  const _AimPainter(this.pathPoints);
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Single laser-sight style dotted line along the exact direction the
-    // arrow will fly (aim is direct: drag toward the target, this line
-    // shows precisely where it's headed) — extends well past the finger so
-    // the far-off targets are easy to line up.
-    final fireDir = Offset.fromDirection(pull.direction);
-    final dotPaint = Paint()..color = Colors.white.withAlpha(140);
-    final maxDist = sqrt(size.width * size.width + size.height * size.height);
-    for (double t = 26; t < maxDist; t += 20) {
-      canvas.drawCircle(bow + fireDir * t, 2.6, dotPaint);
+    if (pathPoints.length < 2) return;
+    final dotPaint = Paint()..color = Colors.white.withAlpha(160);
+    final bounceRingPaint = Paint()
+      ..color = const Color(0xFFFFD93D)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    for (int i = 0; i < pathPoints.length - 1; i++) {
+      final p1 = pathPoints[i];
+      final p2 = pathPoints[i + 1];
+      final segVector = p2 - p1;
+      final segLen = segVector.distance;
+      if (segLen <= 0) continue;
+      final dir = segVector / segLen;
+
+      final startOffset = (i == 0) ? 26.0 : 6.0;
+      for (double t = startOffset; t < segLen - 6.0; t += 18.0) {
+        canvas.drawCircle(p1 + dir * t, 2.8, dotPaint);
+      }
+
+      if (i > 0) {
+        canvas.drawCircle(p1, 5.0, bounceRingPaint);
+      }
     }
   }
 
   @override
-  bool shouldRepaint(covariant _AimPainter old) => old.pull != pull || old.bow != bow;
+  bool shouldRepaint(covariant _AimPainter old) => old.pathPoints != pathPoints;
 }

@@ -164,7 +164,7 @@ class _MathScreenState extends State<MathScreen> {
     _tts.speak(_missingMode == 'yes' ? '$text — what is the missing number?' : '$text equals what?');
   }
 
-  void _checkAnswer(int choiceIdx) {
+  Future<void> _checkAnswer(int choiceIdx) async {
     if (_answered) return;
     final q = _questions[_qCur];
     final choices = q.choices;
@@ -176,20 +176,19 @@ class _MathScreenState extends State<MathScreen> {
     });
     if (correct) {
       _sfx.play(SoundType.correct);
-      if (_streak >= 5) awardWithToast(context, _bs, 'math_streak5');
+      if (_streak >= 5) await awardWithToast(context, _bs, 'math_streak5');
     } else {
       _sfx.play(SoundType.wrong);
     }
-    _tts.speak(correct ? 'Correct!' : choiceIdx < 0 ? "Time's up!" : 'The answer was ${q.answer}');
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted || _view != MathView.quiz) return;
-      if (_qCur + 1 >= _questions.length) {
-        _finishQuiz();
-      } else {
-        setState(() { _qCur++; _chosenIdx = null; _answered = false; _hintUsed = false; _hintElimIdx = -1; });
-        _speakQuestion();
-      }
-    });
+    await _tts.speak(correct ? 'Correct!' : choiceIdx < 0 ? "Time's up!" : 'The answer was ${q.answer}');
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted || _view != MathView.quiz) return;
+    if (_qCur + 1 >= _questions.length) {
+      await _finishQuiz();
+    } else {
+      setState(() { _qCur++; _chosenIdx = null; _answered = false; _hintUsed = false; _hintElimIdx = -1; });
+      _speakQuestion();
+    }
   }
 
   Future<void> _finishQuiz() async {
@@ -292,7 +291,7 @@ class _MathScreenState extends State<MathScreen> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: GestureDetector(
-                        onTap: widget.onGoHome,
+                        onTap: () { _tts.stop(); widget.onGoHome?.call(); },
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           Container(
                             padding: const EdgeInsets.all(7),
@@ -561,7 +560,7 @@ class _MathScreenState extends State<MathScreen> {
               child: Column(children: [
                 Row(children: [
                   GestureDetector(
-                    onTap: () => setState(() => _view = MathView.modeSelect),
+                    onTap: () { _tts.stop(); setState(() => _view = MathView.modeSelect); },
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(8)),
@@ -695,7 +694,7 @@ class _MathScreenState extends State<MathScreen> {
                     Text('$_blitzTotal', style: TextStyle(color: Colors.white.withAlpha(153), fontSize: 14, fontWeight: FontWeight.w800)),
                   ]),
                   GestureDetector(
-                    onTap: () => setState(() => _view = MathView.modeSelect),
+                    onTap: () { _tts.stop(); setState(() => _view = MathView.modeSelect); },
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(8)),
@@ -840,13 +839,13 @@ class _MathScreenState extends State<MathScreen> {
                 const SizedBox(height: 14),
                 Row(children: [
                   Expanded(child: OutlinedButton(
-                    onPressed: () => setState(() => _view = MathView.modeSelect),
+                    onPressed: () { _tts.stop(); setState(() => _view = MathView.modeSelect); },
                     style: OutlinedButton.styleFrom(foregroundColor: Colors.white60, side: const BorderSide(color: Colors.white12), padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                     child: const Text('🏠 Modes'),
                   )),
                   const SizedBox(width: 9),
                   Expanded(child: ElevatedButton(
-                    onPressed: () => setState(() => _view = MathView.settings),
+                    onPressed: () { _tts.stop(); setState(() => _view = MathView.settings); },
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B6B), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                     child: const Text('🔄 Try Again'),
                   )),

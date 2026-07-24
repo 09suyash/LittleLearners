@@ -110,7 +110,7 @@ class _CountingScreenState extends State<CountingScreen>
     return (s.toList()..shuffle(_rng));
   }
 
-  void _answer(int val) {
+  Future<void> _answer(int val) async {
     if (_answered) return;
     setState(() { _chosen = val; _answered = true; });
 
@@ -118,20 +118,16 @@ class _CountingScreenState extends State<CountingScreen>
       _score++;
       _sfx.play(SoundType.correct);
       setState(() => _showConfetti = true);
-      // Speak feedback immediately
-      _tts.speak('Yes! $_count! Amazing!');
       awardWithToast(context, _bs, 'count_first', stars: 10);
-      // Advance after feedback completes
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) _advance();
-      });
+      // Wait for feedback voice to finish speaking completely on current screen
+      await _tts.speak('Yes! $_count! Amazing!');
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (mounted) _advance();
     } else {
       _sfx.play(SoundType.wrong);
       _shakeCtrl.forward(from: 0);
-      _tts.speak('Try again! Count carefully.');
-      Future.delayed(const Duration(milliseconds: 1200), () {
-        if (mounted) setState(() { _chosen = null; _answered = false; _shakeCtrl.reset(); });
-      });
+      await _tts.speak('Try again! Count carefully.');
+      if (mounted) setState(() { _chosen = null; _answered = false; _shakeCtrl.reset(); });
     }
   }
 
@@ -150,6 +146,7 @@ class _CountingScreenState extends State<CountingScreen>
   }
 
   void _restart() {
+    _tts.stop();
     setState(() { _qIdx = 0; _score = 0; _showResult = false; _nextQuestion(); });
   }
 
@@ -214,7 +211,10 @@ class _CountingScreenState extends State<CountingScreen>
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white))),
         // Difficulty toggle
         GestureDetector(
-          onTap: () => setState(() { _easyMode = !_easyMode; _qIdx = 0; _score = 0; _nextQuestion(); }),
+          onTap: () {
+            _tts.stop();
+            setState(() { _easyMode = !_easyMode; _qIdx = 0; _score = 0; _nextQuestion(); });
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(

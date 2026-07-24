@@ -130,6 +130,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   }
 
   void _restart() {
+    _tts.stop();
     setState(() => _buildDeck());
   }
 
@@ -177,7 +178,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
       child: Row(children: [
         GestureDetector(
-          onTap: () { _timer?.cancel(); widget.onBack(); },
+          onTap: () { _timer?.cancel(); _tts.stop(); widget.onBack(); },
           child: Container(
             width: 40, height: 40,
             decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
@@ -195,6 +196,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         GestureDetector(
           onTap: () {
             if (_won || !_started) {
+              _tts.stop();
               setState(() {
                 _diffIdx = (_diffIdx + 1) % 3;
                 _buildDeck();
@@ -373,7 +375,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
-            onPressed: () { _timer?.cancel(); widget.onBack(); },
+            onPressed: () { _timer?.cancel(); _tts.stop(); widget.onBack(); },
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white60,
               side: const BorderSide(color: Colors.white24),

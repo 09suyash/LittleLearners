@@ -176,7 +176,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
             child: Row(children: [
               GestureDetector(
-                onTap: widget.onBack,
+                onTap: () { _tts.stop(); widget.onBack(); },
                 child: Container(
                   width: 40, height: 40,
                   decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
@@ -381,7 +381,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
               Text(stars, style: const TextStyle(fontSize: 32, letterSpacing: 6)),
               const SizedBox(height: 32),
               SizedBox(width: double.infinity, child: ElevatedButton(
-                onPressed: () => setState(_buildSession),
+                onPressed: () { _tts.stop(); setState(_buildSession); },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFFD93D),
                   foregroundColor: const Color(0xFF0d1b2a),
@@ -392,7 +392,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
               )),
               const SizedBox(height: 10),
               SizedBox(width: double.infinity, child: OutlinedButton(
-                onPressed: widget.onBack,
+                onPressed: () { _tts.stop(); widget.onBack(); },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white60,
                   side: const BorderSide(color: Colors.white24),

@@ -214,7 +214,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: GestureDetector(
-                        onTap: widget.onGoHome,
+                        onTap: () { _tts.stop(); widget.onGoHome?.call(); },
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           Container(
                             padding: const EdgeInsets.all(7),
