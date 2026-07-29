@@ -1,4 +1,4 @@
-package com.kidslearning.kids_learning_app
+package in.techbitss.zoodles
 
 import io.flutter.embedding.android.FlutterActivity
 
