@@ -1,4 +1,4 @@
-package in.techbitss.zoodles
+package `in`.techbitss.zoodles
 
 import io.flutter.embedding.android.FlutterActivity
 
