@@ -4,6 +4,8 @@ import 'screens/home_screen.dart';
 import 'screens/abc_screen.dart';
 import 'screens/math_screen.dart';
 import 'screens/stories_screen.dart';
+import 'screens/splash_screen.dart';
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +33,7 @@ class ZoodlesApp extends StatelessWidget {
         style: const TextStyle(decoration: TextDecoration.none),
         child: child!,
       ),
-      home: const MainShell(),
+      home: const SplashScreen(),
     );
   }
 }
@@ -46,6 +48,7 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _tab = 0;
   final _tabNotifier = ValueNotifier<int>(0);
+  DateTime? _lastBackPressTime;
 
   // Nested navigator for the home tab so all pushed screens
   // (Memory Match, Word Builder, etc.) stay inside it and the
@@ -82,8 +85,35 @@ class _MainShellState extends State<MainShell> {
         // On a non-home tab, back goes to home
         if (_tab != 0) {
           goToTab(0);
+          return;
         }
-        // On home tab at root — do nothing (prevents accidental app close for kids)
+        // On home tab at root — show message on first back press, exit on second
+        final now = DateTime.now();
+        if (_lastBackPressTime == null || now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+          _lastBackPressTime = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                'Press back again to exit',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              backgroundColor: const Color(0xFFFF4E4E),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              width: 220,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+          );
+          return;
+        }
+        SystemNavigator.pop();
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0f0c29),
