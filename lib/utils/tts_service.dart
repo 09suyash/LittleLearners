@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 class _VoiceSegment {
@@ -16,6 +16,7 @@ class _TtsRequest {
   final double pitch;
   final int charOffset;    // char offset of this segment in full page text
   final bool isPageFinal;  // true → fire page completion handler when done
+  final int sessionToken;  // token matching TtsService session at creation time
   final Completer<void> completer = Completer();
 
   _TtsRequest({
@@ -23,21 +24,28 @@ class _TtsRequest {
     required this.lang,
     required this.rate,
     required this.pitch,
+    required this.sessionToken,
     this.charOffset = 0,
     this.isPageFinal = false,
   });
 }
 
 // Singleton — all screens share one TTS engine.
-class TtsService {
+class TtsService with WidgetsBindingObserver {
   static final TtsService _instance = TtsService._();
   factory TtsService() => _instance;
-  TtsService._();
+
+  TtsService._() {
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   final FlutterTts _tts = FlutterTts();
   Completer<void>? _initCompleter;
+  bool _initialized = false;
   final Queue<_TtsRequest> _queue = Queue();
   bool _isSpeaking = false;
+  bool get isSpeaking => _isSpeaking;
+  int _sessionToken = 0;
 
   // Current char offset in the full page text — used by progress handler.
   int _currentOffset = 0;
@@ -45,6 +53,16 @@ class TtsService {
 
   // Called only when a full story page (all segments) finishes.
   VoidCallback? _pageCompletionHandler;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      stop();
+    }
+  }
 
   Future<void> _init() async {
     if (_initCompleter != null) return _initCompleter!.future;
@@ -57,6 +75,7 @@ class TtsService {
       _tts.setCompletionHandler(() {
         _isSpeaking = false;
       });
+      _initialized = true;
       _initCompleter!.complete();
     } catch (e) {
       _initCompleter!.completeError(e);
@@ -65,9 +84,24 @@ class TtsService {
   }
 
   // General-purpose single-utterance speak (all non-story screens).
-  Future<void> speak(String text, {String lang = 'en', double rate = 0.45, double pitch = 1.1}) async {
+  Future<void> speak(
+    String text, {
+    BuildContext? context,
+    String lang = 'en',
+    double rate = 0.45,
+    double pitch = 1.1,
+  }) async {
+    if (context != null) {
+      if (!context.mounted) return;
+      final route = ModalRoute.of(context);
+      if (route != null && !route.isCurrent) return;
+    }
     final request = _TtsRequest(
-      text: text, lang: lang, rate: rate, pitch: pitch,
+      text: text,
+      lang: lang,
+      rate: rate,
+      pitch: pitch,
+      sessionToken: _sessionToken,
       isPageFinal: false,
     );
     _queue.add(request);
@@ -78,7 +112,17 @@ class TtsService {
   // Story page narration — splits text into narrator + dialogue segments
   // and speaks each with a distinct voice. Fires [_pageCompletionHandler]
   // once after the last segment completes.
-  Future<void> speakPage(String text, {String lang = 'en', double speed = 0.45}) async {
+  Future<void> speakPage(
+    String text, {
+    BuildContext? context,
+    String lang = 'en',
+    double speed = 0.45,
+  }) async {
+    if (context != null) {
+      if (!context.mounted) return;
+      final route = ModalRoute.of(context);
+      if (route != null && !route.isCurrent) return;
+    }
     final segs = _parseVoices(text);
     int offset = 0;
     for (int i = 0; i < segs.length; i++) {
@@ -90,6 +134,7 @@ class TtsService {
         rate: seg.isDialogue ? (speed + 0.06).clamp(0.1, 0.9) : speed,
         pitch: seg.isDialogue ? 1.55 : 0.92,
         charOffset: offset,
+        sessionToken: _sessionToken,
         isPageFinal: isLast,
       ));
       offset += seg.text.length;
@@ -131,10 +176,20 @@ class TtsService {
     _isSpeaking = true;
     final request = _queue.removeFirst();
 
+    if (request.sessionToken != _sessionToken) {
+      _isSpeaking = false;
+      if (_queue.isNotEmpty) _processQueue();
+      return;
+    }
+
     try {
       await _init();
-      await _tts.stop();
-      await Future.delayed(const Duration(milliseconds: 50));
+      if (request.sessionToken != _sessionToken) {
+        _isSpeaking = false;
+        if (_queue.isNotEmpty) _processQueue();
+        return;
+      }
+
       _currentOffset = request.charOffset;
       await _tts.setLanguage(request.lang == 'hi' ? 'hi-IN' : 'en-US');
       await _tts.setSpeechRate(request.rate);
@@ -143,9 +198,17 @@ class TtsService {
 
       await Future.delayed(const Duration(milliseconds: 100));
       int attempts = 0;
-      while (_isSpeaking && attempts < 120) {
+      while (_isSpeaking && attempts < 120 && request.sessionToken == _sessionToken) {
         await Future.delayed(const Duration(milliseconds: 50));
         attempts++;
+      }
+
+      if (request.sessionToken != _sessionToken) {
+        if (_initialized) {
+          await _tts.stop();
+        }
+        _isSpeaking = false;
+        return;
       }
 
       request.completer.complete();
@@ -154,7 +217,9 @@ class TtsService {
         _pageCompletionHandler?.call();
       }
     } catch (e) {
-      request.completer.completeError(e);
+      if (!request.completer.isCompleted) {
+        request.completer.completeError(e);
+      }
     } finally {
       _isSpeaking = false;
       if (_queue.isNotEmpty) _processQueue();
@@ -163,11 +228,23 @@ class TtsService {
 
   Future<void> stop() async {
     try {
-      _isSpeaking = false;
+      _sessionToken++;
       _queue.clear();
-      await _tts.stop();
-    } catch (_) {}
+      if (_isSpeaking && _initialized) {
+        _isSpeaking = false;
+        await _tts.stop();
+      } else {
+        _isSpeaking = false;
+      }
+    } catch (_) {
+      _isSpeaking = false;
+    }
   }
 
-  void dispose() => _tts.stop();
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (_initialized) {
+      _tts.stop();
+    }
+  }
 }

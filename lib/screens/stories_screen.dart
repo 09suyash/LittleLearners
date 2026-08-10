@@ -265,7 +265,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                     child: const Row(children: [
                       Text('🔊 ', style: TextStyle(fontSize: 13)),
                       Expanded(child: Text('Tap any story → press ▶ to hear it read aloud. Word-by-word highlighting follows along.',
-                          style: const TextStyle(fontSize: 12, color: Colors.white60))),
+                          style: TextStyle(fontSize: 12, color: Colors.white60))),
                     ]),
                   ),
                   const SizedBox(height: 16),

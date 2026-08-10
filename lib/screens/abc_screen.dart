@@ -641,7 +641,7 @@ class _TraceScreenState extends State<_TraceScreen> with SingleTickerProviderSta
                       },
                       child: AnimatedBuilder(
                         animation: _guide,
-                        builder: (_, __) => CustomPaint(
+                        builder: (_, _) => CustomPaint(
                           painter: _TracePainter(
                             letter: d.letter,
                             strokes: _strokes,

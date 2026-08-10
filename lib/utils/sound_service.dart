@@ -86,4 +86,10 @@ class SoundService {
       await _player.play(BytesSource(_get(type)));
     } catch (_) {}
   }
+
+  Future<void> stop() async {
+    try {
+      await _player.stop();
+    } catch (_) {}
+  }
 }

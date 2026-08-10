@@ -5,6 +5,7 @@ import 'screens/abc_screen.dart';
 import 'screens/math_screen.dart';
 import 'screens/stories_screen.dart';
 import 'screens/splash_screen.dart';
+import 'utils/tts_navigator_observer.dart';
 
 
 void main() {
@@ -22,6 +23,7 @@ class ZoodlesApp extends StatelessWidget {
     return MaterialApp(
       title: 'Zoodles',
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [TtsNavigatorObserver()],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFFFD93D),
@@ -62,6 +64,8 @@ class _MainShellState extends State<MainShell> {
   }
 
   void goToTab(int idx) {
+    // Stop all ongoing TTS and sound effects on tab switch
+    TtsNavigatorObserver.stopAllAudio();
     // Always pop the home navigator back to its root before any tab switch,
     // so the home screen is clean if the user returns to it later.
     _homeNavKey.currentState?.popUntil((r) => r.isFirst);
@@ -125,6 +129,7 @@ class _MainShellState extends State<MainShell> {
           // within tab 0 and the bottom nav stays visible throughout.
           Navigator(
             key: _homeNavKey,
+            observers: [TtsNavigatorObserver()],
             onGenerateRoute: (_) => MaterialPageRoute(
               builder: (_) => HomeScreen(
                 onTabSelected: goToTab,
