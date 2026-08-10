@@ -66,10 +66,12 @@ build/
 /ios/Runner/GeneratedPluginRegistrant.*
 /ios/Flutter/Flutter.framework/
 /ios/Flutter/Flutter.podspec
+/ios/Podfile
 
 # macOS
 /macos/Flutter/Flutter.framework/
 /macos/Flutter/ephemeral/
+/macos/Podfile
 
 # Windows
 /windows/flutter/ephemeral/
