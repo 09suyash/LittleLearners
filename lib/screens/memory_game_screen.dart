@@ -120,7 +120,8 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     _timer?.cancel();
     _sfx.play(SoundType.win);
     _tts.speak('Amazing! You matched them all!');
-    await AppState.addStars(10);
+    final starsEarned = _moves <= _pairs + 2 ? 10 : (_moves <= _pairs * 2 ? 5 : 2);
+    await AppState.addStars(starsEarned);
     if (!mounted) return;
     await awardWithToast(context, _bs, 'memory_first');
     if (_diffIdx == 2 && mounted) {
@@ -331,6 +332,8 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   }
 
   Widget _buildWinBanner() {
+    final stars = _moves <= _pairs + 2 ? '⭐⭐⭐' : (_moves <= _pairs * 2 ? '⭐⭐' : '⭐');
+
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 0, 14, 8),
       padding: const EdgeInsets.all(18),
@@ -348,7 +351,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         Text('$_moves moves • $_timeStr',
             style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(204))),
         const SizedBox(height: 4),
-        const Text('⭐⭐⭐', style: TextStyle(fontSize: 24, letterSpacing: 4)),
+        Text(stars, style: const TextStyle(fontSize: 24, letterSpacing: 4)),
       ]),
     );
   }

@@ -92,7 +92,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
     for (int i = 0; i < word.length; i++) {
       _slotCtrl[i] = AnimationController(vsync: this, duration: const Duration(milliseconds: 250));
     }
-    _tts.speak('Spell ${_session[_wIdx].$1}');
+    _tts.speak('Spell ${_session[_wIdx].$1}', context: context);
   }
 
   void _tapTile(_Tile tile) {
@@ -103,7 +103,9 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
 
     final word = _session[_wIdx].$1;
     if (tile.letter == word[slotIdx]) {
-      // Correct
+      // Correct tile placement
+      _sfx.play(SoundType.pop);
+      _tts.speak(tile.letter, context: context, rate: 0.7, pitch: 1.3);
       setState(() {
         tile.used = true;
         _placed[slotIdx] = tile.letter;
@@ -114,12 +116,13 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
         _onWordComplete();
       }
     } else {
-      // Wrong — shake the slot
+      // Wrong tile placement — play wrong sound & announce letter / try again
+      _sfx.play(SoundType.wrong);
+      _tts.speak('${tile.letter}... Try again!', context: context);
       setState(() => _shakeSlot = slotIdx);
       _shakeCtrl.forward(from: 0).then((_) {
         if (mounted) setState(() => _shakeSlot = -1);
       });
-      _tts.speak('Try again!');
     }
   }
 
@@ -127,7 +130,9 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
     final word = _session[_wIdx].$1;
     _score++;
     _sfx.play(SoundType.correct);
-    _tts.speak('$word! Well done!');
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (mounted) _tts.speak('$word! Well done!', context: context);
+    });
     setState(() { _won = true; _showConfetti = true; });
     await AppState.addStars(10);
     if (!mounted) return;
@@ -323,6 +328,13 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
       );
     }
 
+    if (isCorrect) {
+      slot = GestureDetector(
+        onTap: () => _tts.speak(letter, context: context, rate: 0.7, pitch: 1.3),
+        child: slot,
+      );
+    }
+
     return slot;
   }
 
@@ -356,9 +368,10 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
   }
 
   Widget _buildResult() {
-    final pct = (_score / _session.length * 100).round();
-    final stars = pct == 100 ? '⭐⭐⭐' : pct >= 70 ? '⭐⭐' : '⭐';
-    final title = pct == 100 ? 'Perfect Speller!' : pct >= 70 ? 'Great Job!' : 'Keep Practising!';
+    final pct = _session.isNotEmpty ? (_score / _session.length * 100).round() : 0;
+    final stars = pct >= 80 ? '⭐⭐⭐' : pct >= 50 ? '⭐⭐' : (pct > 0 ? '⭐' : '☆☆☆');
+    final title = pct >= 80 ? 'Perfect Speller!' : pct >= 50 ? 'Great Job!' : (pct > 0 ? 'Keep Practising!' : 'Try Again!');
+    final emoji = pct >= 80 ? '🏆' : pct >= 50 ? '🎉' : (pct > 0 ? '👍' : '💪');
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -371,7 +384,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen>
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(pct == 100 ? '🏆' : '🎉', style: const TextStyle(fontSize: 56)),
+              Text(emoji, style: const TextStyle(fontSize: 56)),
               const SizedBox(height: 10),
               Text(title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
               const SizedBox(height: 6),

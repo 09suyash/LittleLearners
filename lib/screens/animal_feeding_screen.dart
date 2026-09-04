@@ -480,7 +480,10 @@ class _AnimalFeedingScreenState extends State<AnimalFeedingScreen> {
   }
 
   Widget _buildFinishedBanner() {
-    final perfect = _score == _totalQ;
+    final pct = _totalQ > 0 ? (_score / _totalQ * 100).round() : 0;
+    final stars = pct >= 80 ? '⭐⭐⭐' : pct >= 50 ? '⭐⭐' : (pct > 0 ? '⭐' : '☆☆☆');
+    final emoji = pct >= 80 ? '🏆' : pct >= 50 ? '🎉' : (pct > 0 ? '👍' : '💪');
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -492,7 +495,7 @@ class _AnimalFeedingScreenState extends State<AnimalFeedingScreen> {
             boxShadow: const [BoxShadow(color: Color(0x44FFD93D), blurRadius: 20)],
           ),
           child: Column(children: [
-            Text(perfect ? '🏆' : '🎉', style: const TextStyle(fontSize: 40)),
+            Text(emoji, style: const TextStyle(fontSize: 40)),
             const SizedBox(height: 4),
             Text('${_animals[_animalIdx]} ate $_score / $_totalQ correctly!',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
@@ -500,7 +503,7 @@ class _AnimalFeedingScreenState extends State<AnimalFeedingScreen> {
             Text('Best: $_bestScore / $_bestTotal',
                 style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(204))),
             const SizedBox(height: 4),
-            const Text('⭐⭐⭐', style: TextStyle(fontSize: 24, letterSpacing: 4)),
+            Text(stars, style: const TextStyle(fontSize: 24, letterSpacing: 4)),
           ]),
         ),
         const SizedBox(height: 20),

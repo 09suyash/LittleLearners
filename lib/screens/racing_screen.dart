@@ -322,7 +322,10 @@ class _RacingScreenState extends State<RacingScreen> {
     _finishPlace = standings.indexOf(playerProgress) + 1;
 
     _sfx.play(metTarget ? SoundType.win : SoundType.correct);
-    await AppState.addStars(metTarget ? 10 : 5);
+    final starsEarned = _finishPlace == 1 ? 10 : (_finishPlace == 2 ? 5 : (_finishPlace == 3 ? 2 : 0));
+    if (starsEarned > 0) {
+      await AppState.addStars(starsEarned);
+    }
     if (!mounted) return;
     setState(() {
       _wave = [];
@@ -747,10 +750,11 @@ class _RacingScreenState extends State<RacingScreen> {
               _finishPlace == 1 ? 'You finished 1st! 🥇' : _finishPlace == 2 ? 'You finished 2nd! 🥈' : 'You finished 3rd! 🥉',
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
             ),
-            if (_metTarget) ...[
-              const SizedBox(height: 4),
-              const Text('⭐⭐⭐', style: TextStyle(fontSize: 24, letterSpacing: 4)),
-            ],
+            const SizedBox(height: 4),
+            Text(
+              _finishPlace == 1 ? '⭐⭐⭐' : _finishPlace == 2 ? '⭐⭐' : (_finishPlace == 3 ? '⭐' : '☆☆☆'),
+              style: const TextStyle(fontSize: 24, letterSpacing: 4),
+            ),
           ]),
         ),
         const SizedBox(height: 20),

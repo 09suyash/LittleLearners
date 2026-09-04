@@ -458,18 +458,32 @@ class _StoriesScreenState extends State<StoriesScreen> {
             if (!isEnd) ...[
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(24),
+                height: 270,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(14),
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: Colors.white.withAlpha(25), width: 1.5),
                   boxShadow: [BoxShadow(color: Colors.black.withAlpha(40), blurRadius: 24)],
                 ),
-                child: Column(children: [
-                  Text(v.pages[_page].scene, style: const TextStyle(fontSize: 36)),
-                  const SizedBox(height: 11),
-                  _HighlightedText(text: v.pages[_page].text, words: _words, highlightIdx: _highlightIdx, isHindi: _lang == 'hi'),
-                ]),
+                alignment: Alignment.center,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(v.pages[_page].scene, style: const TextStyle(fontSize: 34)),
+                      const SizedBox(height: 10),
+                      _HighlightedText(
+                        text: v.pages[_page].text,
+                        words: _words,
+                        highlightIdx: _highlightIdx,
+                        isHindi: _lang == 'hi',
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 12),
               // Audio controls
@@ -499,7 +513,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                     const SizedBox(width: 11),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(_playing ? (_lang == 'hi' ? '🎙️ सुन रहे हैं…' : '🎙️ Narrating…') : (_lang == 'hi' ? '▶ सुनने के लिए दबाएँ' : '▶ Tap to listen'),
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3a2c1a))),
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
                       Text(_lang == 'hi' ? 'हिंदी आवाज़ उपलब्ध' : 'Hindi & English voice',
                           style: const TextStyle(fontSize: 11, color: Colors.white60)),
                     ])),
@@ -714,9 +728,19 @@ class _HighlightedText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final baseStyle = TextStyle(
+      fontSize: isHindi ? 18 : 17,
+      height: isHindi ? 2.0 : 1.85,
+      color: Colors.white.withAlpha(240),
+      letterSpacing: 0.2,
+    );
+
     if (words.isEmpty || highlightIdx < 0) {
-      return Text(text,
-          style: TextStyle(fontSize: isHindi ? 17 : 16, height: isHindi ? 2.15 : 1.9, color: Colors.white));
+      return Text(
+        text,
+        textAlign: TextAlign.center,
+        style: baseStyle,
+      );
     }
 
     final spans = <InlineSpan>[];
@@ -731,9 +755,11 @@ class _HighlightedText extends StatelessWidget {
         text: w.text,
         style: active
             ? TextStyle(
-                color: const Color(0xFFc4855a),
-                fontWeight: FontWeight.w900,
-                fontSize: isHindi ? 21 : 20,
+                color: const Color(0xFFFFD54F),
+                fontWeight: FontWeight.w800,
+                // Keep font size matching baseStyle so text doesn't shift or cause box jitter
+                fontSize: isHindi ? 18 : 17,
+                backgroundColor: const Color(0xFFc4855a).withAlpha(70),
               )
             : null,
       ));
@@ -742,8 +768,9 @@ class _HighlightedText extends StatelessWidget {
     if (pos < text.length) spans.add(TextSpan(text: text.substring(pos)));
 
     return RichText(
+      textAlign: TextAlign.center,
       text: TextSpan(
-        style: TextStyle(fontSize: isHindi ? 17 : 16, height: isHindi ? 2.15 : 1.9, color: Colors.white),
+        style: baseStyle,
         children: spans,
       ),
     );

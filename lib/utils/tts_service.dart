@@ -90,11 +90,15 @@ class TtsService with WidgetsBindingObserver {
     String lang = 'en',
     double rate = 0.45,
     double pitch = 1.1,
+    bool interrupt = true,
   }) async {
     if (context != null) {
       if (!context.mounted) return;
       final route = ModalRoute.of(context);
       if (route != null && !route.isCurrent) return;
+    }
+    if (interrupt) {
+      await stop();
     }
     final request = _TtsRequest(
       text: text,

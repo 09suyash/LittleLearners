@@ -35,7 +35,7 @@ class _MathScreenState extends State<MathScreen> {
   int _table = 2;
   final Set<MathOp> _blitzOps = {MathOp.add, MathOp.sub, MathOp.mul};
   Difficulty _blitzDiff = Difficulty.easy;
-  String _playerName = '';
+  final String _playerName = '';
 
   // Quiz state
   List<_MathQuestion> _questions = [];
@@ -379,23 +379,6 @@ class _MathScreenState extends State<MathScreen> {
                 const SizedBox(height: 18),
                 Center(child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white))),
                 const SizedBox(height: 16),
-                _settingsLabel('Your Name'),
-                TextField(
-                  onChanged: (v) => _playerName = v,
-                  maxLength: 18,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Enter your name…',
-                    hintStyle: TextStyle(color: Colors.white.withAlpha(51)),
-                    counterText: '',
-                    filled: true,
-                    fillColor: Colors.white.withAlpha(15),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withAlpha(26))),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withAlpha(26))),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFFD93D))),
-                  ),
-                ),
-                const SizedBox(height: 14),
                 if (_mode == MathMode.practice) ...[
                   _settingsLabel('Operation'),
                   _optRow(['➕ Add', '➖ Sub', '✖️ Mul'], ['add', 'sub', 'mul'],
@@ -757,8 +740,8 @@ class _MathScreenState extends State<MathScreen> {
         ? (sc >= 25 ? 'Blitz Champion!' : sc >= 15 ? 'Speed Demon!' : sc >= 8 ? 'Nice Blitz!' : 'Good Effort!')
         : (pct >= 90 ? 'Outstanding!' : pct >= 70 ? 'Great Job!' : pct >= 50 ? 'Good Try!' : 'Keep Going!');
     final stars = isBlitz
-        ? (sc >= 25 ? '⭐⭐⭐' : sc >= 15 ? '⭐⭐' : '⭐')
-        : (pct >= 90 ? '⭐⭐⭐' : pct >= 60 ? '⭐⭐' : '⭐');
+        ? (sc >= 25 ? '⭐⭐⭐' : sc >= 15 ? '⭐⭐' : (sc > 0 ? '⭐' : '☆☆☆'))
+        : (pct >= 80 ? '⭐⭐⭐' : pct >= 50 ? '⭐⭐' : (pct > 0 ? '⭐' : '☆☆☆'));
 
     final badges = <String>[
       if (!isBlitz && pct == 100) '💯 Perfect Score!',

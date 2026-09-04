@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../utils/badge_service.dart';
@@ -26,7 +27,7 @@ class PuzzleScreen extends StatefulWidget {
   State<PuzzleScreen> createState() => _PuzzleScreenState();
 }
 
-class _PuzzleScreenState extends State<PuzzleScreen> {
+class _PuzzleScreenState extends State<PuzzleScreen> with SingleTickerProviderStateMixin {
   final _bs  = BadgeService();
   final _sfx = SoundService();
   final _rng = Random();
@@ -39,6 +40,13 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   bool _won   = false;
   bool _showConfetti = false;
 
+  // Guide animation state
+  bool _showInfoGuide = false;
+  Timer? _guideTimer;
+  late AnimationController _guideCtrl;
+  late Animation<double> _guideBounceAnim;
+  late Animation<double> _guidePulseAnim;
+
   int get _totalSlots => _gridSize * _gridSize;
   int get _tileCount  => _totalSlots - 1;
   int get _fastTarget => _gridSize == 2 ? 10 : 35;
@@ -47,6 +55,57 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   void initState() {
     super.initState();
     _newGame();
+
+    _guideCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+
+    _guideBounceAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _guideCtrl, curve: Curves.easeInOut),
+    );
+    _guidePulseAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _guideCtrl, curve: Curves.easeOut),
+    );
+
+    // Always show popup of what to solve on entry
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _showGoalDialog();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _guideTimer?.cancel();
+    _guideCtrl.dispose();
+    super.dispose();
+  }
+
+  void _triggerInfoGuide() {
+    _guideTimer?.cancel();
+    if (mounted) {
+      setState(() {
+        _showInfoGuide = true;
+      });
+    }
+    _guideTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _showInfoGuide = false;
+        });
+      }
+    });
+  }
+
+  void _dismissGuide() {
+    _guideTimer?.cancel();
+    if (_showInfoGuide && mounted) {
+      setState(() {
+        _showInfoGuide = false;
+      });
+    }
   }
 
   // ── Game logic ──────────────────────────────────────────────────
@@ -86,6 +145,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   }
 
   void _tap(int gridPos) {
+    if (_showInfoGuide) _dismissGuide();
     if (_won || !_neighbors(_emptyIdx).contains(gridPos)) return;
     setState(() {
       _grid[_emptyIdx] = _grid[gridPos];
@@ -112,9 +172,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     }
   }
 
-  // ── Tutorial dialog ─────────────────────────────────────────────
+  // ── Goal / Tutorial dialog ──────────────────────────────────────
 
-  void _showTutorialDialog() {
+  void _showGoalDialog() {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -122,40 +182,83 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         backgroundColor: const Color(0xFF2C1654),
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(dialogCtx).size.height * 0.82),
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(dialogCtx).size.height * 0.85),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
+            padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset('assets/images/puzzle_card.png', width: 60, height: 60, fit: BoxFit.contain),
-                const SizedBox(height: 6),
-                const Text('How to Play',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFD93D).withAlpha(40),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFFFD93D).withAlpha(120)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_scenes[_sceneIdx].icon, style: const TextStyle(fontSize: 18)),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${_scenes[_sceneIdx].name} Puzzle ($_gridSize×$_gridSize)',
+                        style: const TextStyle(
+                          color: Color(0xFFFFD93D),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  '🎯 Target Goal',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Arrange the tiles in this order to solve it!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(200), fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(50),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFF51CF66).withAlpha(150), width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF51CF66).withAlpha(30),
+                        blurRadius: 16,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: _miniGoalGrid(),
+                ),
+                const SizedBox(height: 14),
+                _tutStep('👆', 'How to Move',
+                    'Tap any tile next to the empty box to slide it into place.'),
+                const SizedBox(height: 8),
+                _tutStep('ℹ️', 'Need a Reminder?',
+                    'Tap the ℹ️ button at the top right anytime to view this goal again!'),
                 const SizedBox(height: 18),
-                _tutStep('🖼️', 'Tiles are scrambled!',
-                    '$_tileCount picture tiles are mixed up in a $_gridSize×$_gridSize grid. One box is always EMPTY.'),
-                const SizedBox(height: 10),
-                _tutStep('👆', 'Tap a tile next to the empty box',
-                    'Only tiles that TOUCH the empty space can slide. Look for the glowing tiles!'),
-                const SizedBox(height: 10),
-                _tutStep('➡️', 'It slides into the empty space',
-                    'Keep sliding tiles one by one to put them all in order.'),
-                const SizedBox(height: 10),
-                _tutStep('🏆', 'Win when all tiles are in order!',
-                    'Tiles 1→8 must go left-to-right, top-to-bottom. Empty box goes last.'),
-                const SizedBox(height: 18),
-                _miniGoalGrid(),
-                const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.pop(dialogCtx),
+                    onPressed: () {
+                      Navigator.pop(dialogCtx);
+                      _triggerInfoGuide();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFFD93D),
                       foregroundColor: const Color(0xFF1a0533),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
                     ),
                     child: const Text("Let's Play! 🎮",
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
@@ -171,20 +274,20 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   Widget _tutStep(String icon, String title, String desc) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white.withAlpha(16),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(icon, style: const TextStyle(fontSize: 22)),
+        Text(icon, style: const TextStyle(fontSize: 20)),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(title,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFFFFD93D))),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFFFFD93D))),
           const SizedBox(height: 2),
           Text(desc,
-              style: TextStyle(fontSize: 11, color: Colors.white.withAlpha(200), height: 1.4)),
+              style: TextStyle(fontSize: 11, color: Colors.white.withAlpha(200), height: 1.35)),
         ])),
       ]),
     );
@@ -192,40 +295,69 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   Widget _miniGoalGrid() {
     final emojis = _scenes[_sceneIdx].tiles;
-    return Column(children: [
-      const Text('🎯 Goal — tiles in this order:',
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white60)),
-      const SizedBox(height: 8),
-      LayoutBuilder(builder: (ctx, cst) => SizedBox(
-        width: (cst.maxWidth * 0.55).clamp(120.0, 200.0),
+    return LayoutBuilder(builder: (ctx, cst) {
+      final gridWidth = (cst.maxWidth * 0.72).clamp(130.0, 200.0);
+      return SizedBox(
+        width: gridWidth,
         child: GridView.count(
           crossAxisCount: _gridSize,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 4,
-          crossAxisSpacing: 4,
+          mainAxisSpacing: 6,
+          crossAxisSpacing: 6,
           children: [
             for (int i = 0; i < _tileCount; i++)
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(22),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF51CF66), width: 1.5),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withAlpha(35),
+                      Colors.white.withAlpha(15),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF51CF66), width: 1.8),
                 ),
-                child: Center(child: Text(emojis[i], style: const TextStyle(fontSize: 18))),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 2,
+                      left: 4,
+                      child: Text(
+                        '${i + 1}',
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF51CF66),
+                        ),
+                      ),
+                    ),
+                    Center(child: Text(emojis[i], style: const TextStyle(fontSize: 22))),
+                  ],
+                ),
               ),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha(8),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white.withAlpha(50), width: 1.5),
+                color: Colors.white.withAlpha(10),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white.withAlpha(60), width: 1.5),
               ),
-              child: const Center(child: Text('⬜', style: TextStyle(fontSize: 18))),
+              child: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('🔲', style: TextStyle(fontSize: 16)),
+                    Text('Empty', style: TextStyle(fontSize: 9, color: Colors.white60, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
-      )),
-    ]);
+      );
+    });
   }
 
   // ── Build ───────────────────────────────────────────────────────
@@ -234,9 +366,101 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   Widget build(BuildContext context) {
     return Stack(children: [
       _buildMain(),
+      if (_showInfoGuide) _buildGuideOverlay(),
       MascotCorner(celebrating: _won),
       ConfettiOverlay(trigger: _showConfetti),
     ]);
+  }
+
+  Widget _buildGuideOverlay() {
+    return Positioned(
+      top: 58,
+      right: 14,
+      child: AnimatedBuilder(
+        animation: _guideBounceAnim,
+        builder: (context, child) {
+          final dy = sin(_guideBounceAnim.value * 2 * pi) * 4.0;
+          return Transform.translate(
+            offset: Offset(0, dy),
+            child: child,
+          );
+        },
+        child: GestureDetector(
+          onTap: () {
+            _dismissGuide();
+            _showGoalDialog();
+          },
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2C1654), Color(0xFF4A154B)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFFFD93D), width: 1.8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(120),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                  BoxShadow(
+                    color: const Color(0xFFFFD93D).withAlpha(90),
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('👆', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Tap ℹ️ anytime!',
+                        style: TextStyle(
+                          color: Color(0xFFFFD93D),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                        ),
+                      ),
+                      SizedBox(height: 1),
+                      Text(
+                        'To see target goal again',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: _dismissGuide,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(30),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.close, color: Colors.white70, size: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildMain() {
@@ -335,20 +559,58 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
           ]),
         ),
         const SizedBox(width: 8),
-        // Help button
-        GestureDetector(
-          onTap: _showTutorialDialog,
-          child: Container(
+        // i- button
+        _buildInfoButton(),
+      ]),
+    );
+  }
+
+  Widget _buildInfoButton() {
+    return GestureDetector(
+      onTap: () {
+        _dismissGuide();
+        _showGoalDialog();
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          if (_showInfoGuide)
+            AnimatedBuilder(
+              animation: _guidePulseAnim,
+              builder: (ctx, _) => Container(
+                width: 36 + _guidePulseAnim.value * 14,
+                height: 36 + _guidePulseAnim.value * 14,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFFFFD93D).withAlpha((255 * (1.0 - _guidePulseAnim.value)).toInt()),
+                    width: 2.2,
+                  ),
+                ),
+              ),
+            ),
+          Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFD93D).withAlpha(40),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFD93D), Color(0xFFFF9F43)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFFFD93D).withAlpha(120), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFD93D).withAlpha(_showInfoGuide ? 180 : 80),
+                  blurRadius: _showInfoGuide ? 10 : 6,
+                  spreadRadius: _showInfoGuide ? 1.5 : 0,
+                ),
+              ],
             ),
-            child: const Text('?', style: TextStyle(color: Color(0xFFFFD93D), fontSize: 16, fontWeight: FontWeight.w900)),
+            child: const Icon(Icons.info_rounded, color: Color(0xFF1a0533), size: 20),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -363,7 +625,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         itemBuilder: (_, i) {
           final sel = i == _sceneIdx;
           return GestureDetector(
-            onTap: () { setState(() => _sceneIdx = i); _newGame(); },
+            onTap: () {
+              setState(() => _sceneIdx = i);
+              _newGame();
+            },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -467,7 +732,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                       BoxShadow(
                         color: canSlide
                             ? const Color(0xFFFFD93D).withAlpha(80)
-                            : Colors.black.withAlpha(40),
+                        : Colors.black.withAlpha(40),
                         blurRadius: canSlide ? 10 : 6,
                         offset: const Offset(0, 3),
                       ),

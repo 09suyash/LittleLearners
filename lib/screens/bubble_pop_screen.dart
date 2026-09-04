@@ -134,8 +134,13 @@ class _BubblePopScreenState extends State<BubblePopScreen> {
     _ticker?.cancel();
     await _saveBest();
     final metTarget = _score >= _target;
-    _sfx.play(metTarget ? SoundType.win : SoundType.correct);
-    await AppState.addStars(metTarget ? 10 : 5);
+    final pct = _target > 0 ? ((_score / _target) * 100).round() : 0;
+    final starsEarned = pct >= 100 ? 10 : (pct >= 50 ? 5 : (_score > 0 ? 2 : 0));
+
+    _sfx.play(metTarget ? SoundType.win : (_score > 0 ? SoundType.correct : SoundType.wrong));
+    if (starsEarned > 0) {
+      await AppState.addStars(starsEarned);
+    }
     if (!mounted) return;
     setState(() {
       _bubbles.clear();
@@ -339,6 +344,10 @@ class _BubblePopScreenState extends State<BubblePopScreen> {
   }
 
   Widget _buildFinishedBanner() {
+    final pct = _target > 0 ? ((_score / _target) * 100).round() : 0;
+    final stars = pct >= 80 ? '⭐⭐⭐' : pct >= 50 ? '⭐⭐' : (_score > 0 ? '⭐' : '☆☆☆');
+    final emoji = pct >= 100 ? '🏆' : pct >= 80 ? '🎉' : (pct >= 50 ? '👍' : (_score > 0 ? '💫' : '😢'));
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -352,17 +361,15 @@ class _BubblePopScreenState extends State<BubblePopScreen> {
             border: _metTarget ? null : Border.all(color: Colors.white.withAlpha(30)),
           ),
           child: Column(children: [
-            Text(_metTarget ? '🎉' : '💫', style: const TextStyle(fontSize: 40)),
+            Text(emoji, style: const TextStyle(fontSize: 40)),
             const SizedBox(height: 4),
             Text(_metTarget ? 'Target reached!' : 'Nice popping!',
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)),
             const SizedBox(height: 2),
             Text('Score: $_score  •  Goal was $_target',
                 style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(204))),
-            if (_metTarget) ...[
-              const SizedBox(height: 4),
-              const Text('⭐⭐⭐', style: TextStyle(fontSize: 24, letterSpacing: 4)),
-            ],
+            const SizedBox(height: 4),
+            Text(stars, style: const TextStyle(fontSize: 24, letterSpacing: 4)),
           ]),
         ),
         const SizedBox(height: 20),

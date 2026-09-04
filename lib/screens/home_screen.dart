@@ -18,7 +18,11 @@ import 'badges_screen.dart';
 class HomeScreen extends StatefulWidget {
   final void Function(int) onTabSelected;
   final ValueNotifier<int> tabNotifier;
-  const HomeScreen({super.key, required this.onTabSelected, required this.tabNotifier});
+  const HomeScreen({
+    super.key,
+    required this.onTabSelected,
+    required this.tabNotifier,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -31,15 +35,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late Animation<double> _mascotBounceAnim;
 
   int _mascotIdx = 0;
-  static const _mascots = ['🦉', '🎓', '🤩', '🐸', '⭐', '🦄', '🐨', '🚀', '🌈', '🎉'];
+  static const _mascots = [
+    '🦉',
+    '🎓',
+    '🤩',
+    '🐸',
+    '⭐',
+    '🦄',
+    '🐨',
+    '🚀',
+    '🌈',
+    '🎉',
+  ];
 
   String _childName = '';
-  String abcScore   = '—';
-  String mathScore  = '—';
+  String abcScore = '—';
+  String mathScore = '—';
   String storiesRead = '—';
-  bool _dcDone  = false;
-  int  _dcStreak = 0;
-  int  _badgeCount = 0;
+  bool _dcDone = false;
+  int _dcStreak = 0;
+  int _badgeCount = 0;
 
   final _rng = Random();
   final _sfx = SoundService();
@@ -50,18 +65,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _stars = List.generate(65, (_) => _Star(_rng));
 
-    _floatCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 3))
-      ..repeat(reverse: true);
-    _floatAnim = Tween<double>(begin: 0, end: -7)
-        .animate(CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut));
+    _floatCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat(reverse: true);
+    _floatAnim = Tween<double>(
+      begin: 0,
+      end: -7,
+    ).animate(CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut));
 
     _mascotBounceCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 450));
-    _mascotBounceAnim = TweenSequence([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.45), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 1.45, end: 0.88), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 0.88, end: 1.0), weight: 1),
-    ]).animate(CurvedAnimation(parent: _mascotBounceCtrl, curve: Curves.easeInOut));
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+    _mascotBounceAnim =
+        TweenSequence([
+          TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.45), weight: 1),
+          TweenSequenceItem(tween: Tween(begin: 1.45, end: 0.88), weight: 1),
+          TweenSequenceItem(tween: Tween(begin: 0.88, end: 1.0), weight: 1),
+        ]).animate(
+          CurvedAnimation(parent: _mascotBounceCtrl, curve: Curves.easeInOut),
+        );
 
     AppState.mascot = _mascots[_mascotIdx];
     widget.tabNotifier.addListener(_onTabChange);
@@ -85,9 +109,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _loadStats() async {
-    final prefs     = await SharedPreferences.getInstance();
-    final dcDone    = await DailyChallengeService().isCompletedToday();
-    final dcStreak  = await DailyChallengeService().getStreak();
+    final prefs = await SharedPreferences.getInstance();
+    final dcDone = await DailyChallengeService().isCompletedToday();
+    final dcStreak = await DailyChallengeService().getStreak();
     await BadgeService().load();
     await AppState.loadStars();
     if (!mounted) return;
@@ -99,8 +123,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       mathScore = math >= 0 ? '$math/$mathTotal' : '—';
       final stories = prefs.getStringList('stories_done')?.length ?? 0;
       storiesRead = stories > 0 ? '$stories' : '—';
-      _dcDone    = dcDone;
-      _dcStreak  = dcStreak;
+      _dcDone = dcDone;
+      _dcStreak = dcStreak;
       _badgeCount = BadgeService().earned.length;
     });
   }
@@ -110,19 +134,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF16213e),
-        title: const Text('Reset Progress?',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Reset Progress?',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+        ),
         content: const Text(
-            'This will clear all scores, learned letters and completed stories.',
-            style: TextStyle(color: Colors.white70)),
+          'This will clear all scores, learned letters and completed stories.',
+          style: TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Reset',
-                style: TextStyle(color: Color(0xFFFF6B6B), fontWeight: FontWeight.w800)),
+            child: const Text(
+              'Reset',
+              style: TextStyle(
+                color: Color(0xFFFF6B6B),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
         ],
       ),
@@ -155,225 +191,492 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         backgroundColor: const Color(0xFF1a1040),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('👋', style: TextStyle(fontSize: 52)),
-            const SizedBox(height: 10),
-            const Text("What's your name?",
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('👋', style: TextStyle(fontSize: 52)),
+              const SizedBox(height: 10),
+              const Text(
+                "What's your name?",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)),
-            const SizedBox(height: 6),
-            Text("We'll use it to make the app feel special!",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.white.withAlpha(150))),
-            const SizedBox(height: 22),
-            TextField(
-              controller: ctrl,
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              maxLength: 20,
-              style: const TextStyle(
-                  color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
-              decoration: InputDecoration(
-                hintText: "Enter child's name…",
-                hintStyle: TextStyle(color: Colors.white.withAlpha(80), fontSize: 14),
-                filled: true,
-                fillColor: Colors.white.withAlpha(20),
-                counterStyle: TextStyle(color: Colors.white.withAlpha(60)),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: StatefulBuilder(builder: (ctx, setSt) {
-                return ElevatedButton(
-                  onPressed: () async {
-                    final name = ctrl.text.trim();
-                    if (name.isEmpty) return;
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setString('child_name', name);
-                    if (!mounted) return;
-                    setState(() { _childName = name; AppState.childName = name; });
-                    if (dialogCtx.mounted) Navigator.pop(dialogCtx);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFD93D),
-                    foregroundColor: const Color(0xFF1a0533),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+              const SizedBox(height: 6),
+              Text(
+                "We'll use it to make the app feel special!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withAlpha(150),
+                ),
+              ),
+              const SizedBox(height: 22),
+              TextField(
+                controller: ctrl,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                maxLength: 20,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+                decoration: InputDecoration(
+                  hintText: "Enter child's name…",
+                  hintStyle: TextStyle(
+                    color: Colors.white.withAlpha(80),
+                    fontSize: 14,
                   ),
-                  child: const Text("Let's Go! 🚀",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-                );
-              }),
-            ),
-          ]),
+                  filled: true,
+                  fillColor: Colors.white.withAlpha(20),
+                  counterStyle: TextStyle(color: Colors.white.withAlpha(60)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: StatefulBuilder(
+                  builder: (ctx, setSt) {
+                    return ElevatedButton(
+                      onPressed: () async {
+                        final name = ctrl.text.trim();
+                        if (name.isEmpty) return;
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString('child_name', name);
+                        if (!mounted) return;
+                        setState(() {
+                          _childName = name;
+                          AppState.childName = name;
+                        });
+                        if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFD93D),
+                        foregroundColor: const Color(0xFF1a0533),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        "Let's Go! 🚀",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
+
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [
-      // Twinkling star background
-      ..._stars.map((s) {
-        final size = MediaQuery.of(context).size;
-        return Positioned(
-          left: s.x * size.width,
-          top: s.y * size.height,
-          child: _StarWidget(star: s),
-        );
-      }),
-      SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Column(children: [
-            _header(),
-            _dailyChallengeCard(),
-            _statsRow(),
-            _trophyRoomButton(),
-            const SizedBox(height: 4),
-            _activityGrid(),
-            const SizedBox(height: 14),
-            _gamesButton(),
-            const SizedBox(height: 14),
-            _parentZoneButton(),
-            const SizedBox(height: 16),
-            Text('🌟 Made with love for young learners • v1.0',
-                style: TextStyle(color: Colors.white.withAlpha(46), fontSize: 11)),
-            const SizedBox(height: 6),
-            GestureDetector(
-              onTap: _confirmReset,
-              child: Text('Reset Progress',
-                  style: TextStyle(
-                      color: Colors.white.withAlpha(38),
-                      fontSize: 11)),
+    final topPad = MediaQuery.of(context).padding.top;
+    // Collapsed bar height: status bar + compact toolbar (74px)
+    const collapsedToolbar = 74.0;
+    final collapsedHeight = topPad + collapsedToolbar;
+    const expandedBarHeight = 335.0;
+
+    return Stack(
+      children: [
+        // Twinkling star background
+        ..._stars.map((s) {
+          final size = MediaQuery.of(context).size;
+          return Positioned(
+            left: s.x * size.width,
+            top: s.y * size.height,
+            child: _StarWidget(star: s),
+          );
+        }),
+        CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              expandedHeight: expandedBarHeight,
+              collapsedHeight: collapsedToolbar,
+              toolbarHeight: collapsedToolbar,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              flexibleSpace: LayoutBuilder(
+                builder: (context, constraints) {
+                  // How far we've collapsed (0.0 = fully expanded, 1.0 = fully collapsed)
+                  final maxExtent = expandedBarHeight + topPad;
+                  final minExtent = collapsedHeight;
+                  final t =
+                      ((maxExtent - constraints.maxHeight) /
+                              (maxExtent - minExtent))
+                          .clamp(0.0, 1.0);
+
+                  return Stack(
+                    children: [
+                      // Frosted dark background for collapsed state
+                      Positioned.fill(
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 150),
+                          opacity: t,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0d0221).withAlpha(230),
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.white.withAlpha(
+                                    (20 * t).round(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Expanded header (fades out)
+                      Positioned.fill(
+                        child: Opacity(
+                          opacity: (1.0 - t * 2.5).clamp(0.0, 1.0),
+                          child: SafeArea(
+                            bottom: false,
+                            child: _expandedHeader(),
+                          ),
+                        ),
+                      ),
+                      // Collapsed header (fades in)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Opacity(
+                          opacity: ((t - 0.3) / 0.7).clamp(0.0, 1.0),
+                          child: _collapsedHeader(),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
-            const SizedBox(height: 8),
-          ]),
+            // ── Scrollable content ──
+            SliverToBoxAdapter(child: _dailyChallengeCard()),
+            SliverToBoxAdapter(child: _statsRow()),
+            SliverToBoxAdapter(child: _trophyRoomButton()),
+            const SliverToBoxAdapter(child: SizedBox(height: 4)),
+            SliverToBoxAdapter(child: _activityGrid()),
+            const SliverToBoxAdapter(child: SizedBox(height: 14)),
+            SliverToBoxAdapter(child: _gamesButton()),
+            const SliverToBoxAdapter(child: SizedBox(height: 14)),
+            SliverToBoxAdapter(child: _parentZoneButton()),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16, bottom: 6),
+                child: Text(
+                  '🌟 Made with love for young learners • v1.0',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withAlpha(46),
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: GestureDetector(
+                onTap: _confirmReset,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Text(
+                    'Reset Progress',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withAlpha(38),
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-    ]);
+      ],
+    );
   }
 
-  // ── Header ─────────────────────────────────────────────────────────────────
+  // ── Expanded header (shown when at top of scroll) ──────────────────────────
 
-  Widget _header() {
+  Widget _expandedHeader() {
     final hasName = _childName.isNotEmpty;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 22, 16, 14),
-      child: Column(children: [
-        Text('ZOODLES',
-            style: TextStyle(
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'ZOODLES',
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 3,
-                color: Colors.white.withAlpha(130))),
-        const SizedBox(height: 6),
-        GestureDetector(
-          onTap: () {
-            final next = (_mascotIdx + 1) % _mascots.length;
-            setState(() => _mascotIdx = next);
-            AppState.mascot = _mascots[next];
-            _mascotBounceCtrl.forward(from: 0);
-          },
-          child: AnimatedBuilder(
-            animation: Listenable.merge([_floatAnim, _mascotBounceAnim]),
-            builder: (_, child) => Transform.translate(
-              offset: Offset(0, _floatAnim.value),
-              child: Transform.scale(
-                scale: _mascotBounceAnim.value,
-                child: Text(_mascots[_mascotIdx],
-                    style: const TextStyle(fontSize: 60)),
+                color: Colors.white.withAlpha(130),
               ),
             ),
-          ),
+            const SizedBox(height: 4),
+            GestureDetector(
+              onTap: () {
+                final next = (_mascotIdx + 1) % _mascots.length;
+                setState(() => _mascotIdx = next);
+                AppState.mascot = _mascots[next];
+                _mascotBounceCtrl.forward(from: 0);
+              },
+              child: AnimatedBuilder(
+                animation: Listenable.merge([_floatAnim, _mascotBounceAnim]),
+                builder: (_, child) => Transform.translate(
+                  offset: Offset(0, _floatAnim.value),
+                  child: Transform.scale(
+                    scale: _mascotBounceAnim.value,
+                    child: Text(
+                      _mascots[_mascotIdx],
+                      style: const TextStyle(fontSize: 54),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            if (hasName)
+              Text(
+                'Hi, $_childName! 👋',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              )
+            else
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [
+                    Color(0xFFFFD93D),
+                    Color(0xFFFF6B6B),
+                    Color(0xFF6BCB77),
+                    Color(0xFF4D96FF),
+                  ],
+                ).createShader(bounds),
+                child: const Text(
+                  'Zoodles',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 4),
+            Text(
+              hasName
+                  ? 'Ready to learn and play? 🌟'
+                  : '6 subjects + 11 games! Tap to start!',
+              style: TextStyle(color: Colors.white.withAlpha(115), fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFD93D), Color(0xFFFF9F43)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x44FFD93D), blurRadius: 10),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('⭐', style: TextStyle(fontSize: 14)),
+                  const SizedBox(width: 5),
+                  Text(
+                    '${AppState.totalStars} stars',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1a0533),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            _levelBar(),
+          ],
         ),
-        const SizedBox(height: 8),
-        if (hasName)
-          Text('Hi, $_childName! 👋',
-              style: const TextStyle(
-                  fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white))
-        else
-          ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(colors: [
-              Color(0xFFFFD93D), Color(0xFFFF6B6B),
-              Color(0xFF6BCB77), Color(0xFF4D96FF),
-            ]).createShader(bounds),
-            child: const Text('Zoodles',
-                style: TextStyle(
-                    fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white)),
-          ),
-        const SizedBox(height: 4),
-        Text(
-          hasName ? 'Ready to learn and play? 🌟' : '6 subjects + 11 games! Tap to start!',
-          style: TextStyle(color: Colors.white.withAlpha(115), fontSize: 13),
-        ),
-        const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-                colors: [Color(0xFFFFD93D), Color(0xFFFF9F43)]),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(color: Color(0x44FFD93D), blurRadius: 10)
+      ),
+    );
+  }
+
+  // ── Collapsed header (pinned bar when scrolled) ────────────────────────────
+
+  Widget _collapsedHeader() {
+    final hasName = _childName.isNotEmpty;
+    final progress = AppState.levelProgress;
+    final toNext = AppState.starsToNext;
+    final isMax = toNext == 0;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Top row: mascot + name + stars
+          Row(
+            children: [
+              Text(_mascots[_mascotIdx], style: const TextStyle(fontSize: 26)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      hasName ? 'Hi, $_childName! 👋' : 'Zoodles',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      '${AppState.levelEmoji} Lv ${AppState.level} · ${AppState.levelName}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withAlpha(140),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFD93D), Color(0xFFFF9F43)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('⭐', style: TextStyle(fontSize: 11)),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${AppState.totalStars}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1a0533),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            const Text('⭐', style: TextStyle(fontSize: 16)),
-            const SizedBox(width: 5),
-            Text('${AppState.totalStars} stars',
-                style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1a0533))),
-          ]),
-        ),
-        const SizedBox(height: 12),
-        _levelBar(),
-      ]),
+          const SizedBox(height: 4),
+          // Level progress bar
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 4,
+                    backgroundColor: Colors.white.withAlpha(20),
+                    valueColor: const AlwaysStoppedAnimation(Color(0xFF6C63FF)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isMax ? '🌈 MAX' : '$toNext ⭐ left',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Colors.white.withAlpha(90),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   // ── Level bar ──────────────────────────────────────────────────────────────
 
   Widget _levelBar() {
-    final progress  = AppState.levelProgress;
-    final toNext    = AppState.starsToNext;
-    final isMax     = toNext == 0;
+    final progress = AppState.levelProgress;
+    final toNext = AppState.starsToNext;
+    final isMax = toNext == 0;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(
-            '${AppState.levelEmoji} Lv ${AppState.level} · ${AppState.levelName}',
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white70),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${AppState.levelEmoji} Lv ${AppState.level} · ${AppState.levelName}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white70,
+                ),
+              ),
+              Text(
+                isMax ? '🌈 MAX LEVEL' : '$toNext ⭐ to next level',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withAlpha(100),
+                ),
+              ),
+            ],
           ),
-          Text(
-            isMax ? '🌈 MAX LEVEL' : '$toNext ⭐ to next level',
-            style: TextStyle(fontSize: 11, color: Colors.white.withAlpha(100)),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: Colors.white.withAlpha(20),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF6C63FF)),
+            ),
           ),
-        ]),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 8,
-            backgroundColor: Colors.white.withAlpha(20),
-            valueColor: const AlwaysStoppedAnimation(Color(0xFF6C63FF)),
-          ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -382,13 +685,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _statsRow() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-      child: Row(children: [
-        _statPill(abcScore, 'ABC'),
-        const SizedBox(width: 8),
-        _statPill(mathScore, 'Math'),
-        const SizedBox(width: 8),
-        _statPill(storiesRead, 'Stories'),
-      ]),
+      child: Row(
+        children: [
+          _statPill(abcScore, 'ABC'),
+          const SizedBox(width: 8),
+          _statPill(mathScore, 'Math'),
+          const SizedBox(width: 8),
+          _statPill(storiesRead, 'Stories'),
+        ],
+      ),
     );
   }
 
@@ -401,14 +706,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white.withAlpha(26)),
         ),
-        child: Column(children: [
-          Text(num,
+        child: Column(
+          children: [
+            Text(
+              num,
               style: const TextStyle(
-                  fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFFFFD93D))),
-          const SizedBox(height: 1),
-          Text(label,
-              style: TextStyle(fontSize: 10, color: Colors.white.withAlpha(97))),
-        ]),
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+                color: Color(0xFFFFD93D),
+              ),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              label,
+              style: TextStyle(fontSize: 10, color: Colors.white.withAlpha(97)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -431,31 +745,59 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFFFFD93D).withAlpha(60)),
           ),
-          child: Row(children: [
-            Image.asset('assets/images/trophy_card.png', width: 48, height: 48, fit: BoxFit.contain),
-            const SizedBox(width: 10),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Trophy Room',
-                  style: TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
-              Text('$_badgeCount / $total badges earned',
-                  style: TextStyle(fontSize: 11, color: Colors.white.withAlpha(102))),
-            ])),
-            SizedBox(
-              width: 80,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: total > 0 ? _badgeCount / total : 0,
-                  minHeight: 7,
-                  backgroundColor: Colors.white.withAlpha(18),
-                  valueColor: const AlwaysStoppedAnimation(Color(0xFFFFD93D)),
+          child: Row(
+            children: [
+              Image.asset(
+                'assets/images/trophy_card.png',
+                width: 48,
+                height: 48,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Trophy Room',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      '$_badgeCount / $total badges earned',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withAlpha(102),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text('›', style: TextStyle(fontSize: 20, color: Colors.white.withAlpha(64))),
-          ]),
+              SizedBox(
+                width: 80,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: total > 0 ? _badgeCount / total : 0,
+                    minHeight: 7,
+                    backgroundColor: Colors.white.withAlpha(18),
+                    valueColor: const AlwaysStoppedAnimation(Color(0xFFFFD93D)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '›',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white.withAlpha(64),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -469,17 +811,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: GestureDetector(
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => DailyChallengeScreen(
-            onBack: () => Navigator.pop(context),
-            onCompleted: () { Navigator.pop(context); _loadStats(); },
-          )),
+          MaterialPageRoute(
+            builder: (_) => DailyChallengeScreen(
+              onBack: () => Navigator.pop(context),
+              onCompleted: () {
+                Navigator.pop(context);
+                _loadStats();
+              },
+            ),
+          ),
         ),
         child: Container(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: _dcDone
-                ? [const Color(0xFF1a3a2a), const Color(0xFF1a2a1a)]
-                : [const Color(0xFF2a1a3a), const Color(0xFF1a1040)]),
+            gradient: LinearGradient(
+              colors: _dcDone
+                  ? [const Color(0xFF1a3a2a), const Color(0xFF1a2a1a)]
+                  : [const Color(0xFF2a1a3a), const Color(0xFF1a1040)],
+            ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: _dcDone
@@ -488,43 +837,70 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               width: 1.5,
             ),
           ),
-          child: Row(children: [
-            Text(_dcDone ? '✅' : '⚡', style: const TextStyle(fontSize: 30)),
-            const SizedBox(width: 13),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
-                _dcDone ? 'Daily Challenge Done!' : '⚡ Daily Challenge',
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: _dcDone ? const Color(0xFF51CF66) : const Color(0xFFFFD93D)),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                _dcDone
-                    ? 'Come back tomorrow for a new one'
-                    : 'A new puzzle every day — tap to play!',
-                style: TextStyle(fontSize: 11, color: Colors.white.withAlpha(115)),
-              ),
-            ])),
-            const SizedBox(width: 8),
-            if (_dcStreak > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF6B6B).withAlpha(30),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFFF6B6B).withAlpha(80)),
-                ),
-                child: Text('🔥 $_dcStreak',
-                    style: const TextStyle(
-                        fontSize: 13,
+          child: Row(
+            children: [
+              Text(_dcDone ? '✅' : '⚡', style: const TextStyle(fontSize: 30)),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _dcDone ? 'Daily Challenge Done!' : '⚡ Daily Challenge',
+                      style: TextStyle(
+                        fontSize: 15,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFFFF6B6B))),
-              )
-            else
-              Text('›', style: TextStyle(fontSize: 22, color: Colors.white.withAlpha(64))),
-          ]),
+                        color: _dcDone
+                            ? const Color(0xFF51CF66)
+                            : const Color(0xFFFFD93D),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _dcDone
+                          ? 'Come back tomorrow for a new one'
+                          : 'A new puzzle every day — tap to play!',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withAlpha(115),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (_dcStreak > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B6B).withAlpha(30),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFFFF6B6B).withAlpha(80),
+                    ),
+                  ),
+                  child: Text(
+                    '🔥 $_dcStreak',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFFFF6B6B),
+                    ),
+                  ),
+                )
+              else
+                Text(
+                  '›',
+                  style: TextStyle(
+                    fontSize: 22,
+                    color: Colors.white.withAlpha(64),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -544,45 +920,66 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         childAspectRatio: 1.0,
         children: [
           _gridCard(
-            emoji: '🔤', name: 'ABC & Phonics',
+            emoji: '🔤',
+            name: 'ABC & Phonics',
             imagePath: 'assets/images/abc_card.png',
             colors: [const Color(0xFFFF6B6B), const Color(0xFFFF8E53)],
             progress: abcScore,
             onTap: () => widget.onTabSelected(1),
           ),
           _gridCard(
-            emoji: '🔢', name: 'Math Quiz',
+            emoji: '🔢',
+            name: 'Math Quiz',
             imagePath: 'assets/images/math_card.png',
             colors: [const Color(0xFFFFD93D), const Color(0xFFFF922B)],
             progress: mathScore,
             onTap: () => widget.onTabSelected(2),
           ),
           _gridCard(
-            emoji: '📚', name: 'Moral Stories',
+            emoji: '📚',
+            name: 'Moral Stories',
             imagePath: 'assets/images/stories_card.png',
             colors: [const Color(0xFFc4855a), const Color(0xFF7B3F00)],
             progress: storiesRead != '—' ? '$storiesRead read' : null,
             onTap: () => widget.onTabSelected(3),
           ),
           _gridCard(
-            emoji: '🔡', name: 'Word Builder',
+            emoji: '🔡',
+            name: 'Word Builder',
             imagePath: 'assets/images/word_card.png',
             colors: [const Color(0xFF20C997), const Color(0xFF12B886)],
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => WordBuilderScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    WordBuilderScreen(onBack: () => Navigator.pop(context)),
+              ),
+            ).then((_) => _loadStats()),
           ),
           _gridCard(
-            emoji: '🔢', name: 'Counting Fun',
+            emoji: '🔢',
+            name: 'Counting Fun',
             imagePath: 'assets/images/counting_card.png',
             colors: [const Color(0xFF4D96FF), const Color(0xFF228BE6)],
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => CountingScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    CountingScreen(onBack: () => Navigator.pop(context)),
+              ),
+            ).then((_) => _loadStats()),
           ),
           _gridCard(
-            emoji: '🐾', name: 'Animal Sounds',
+            emoji: '🐾',
+            name: 'Animal Sounds',
             colors: [const Color(0xFF56AB2F), const Color(0xFFA8E063)],
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => AnimalSoundQuizScreen(onBack: () => Navigator.pop(context)))).then((_) => _loadStats()),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    AnimalSoundQuizScreen(onBack: () => Navigator.pop(context)),
+              ),
+            ).then((_) => _loadStats()),
           ),
         ],
       ),
@@ -598,7 +995,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     String? imagePath,
   }) {
     return TapScale(
-      onTap: () { _sfx.play(SoundType.tap); onTap(); },
+      onTap: () {
+        _sfx.play(SoundType.tap);
+        onTap();
+      },
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -609,47 +1009,70 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-                color: colors.first.withAlpha(110),
-                blurRadius: 14,
-                offset: const Offset(0, 5)),
+              color: colors.first.withAlpha(110),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+            ),
           ],
         ),
-        child: Stack(children: [
-          // Progress badge
-          if (progress != null)
-            Positioned(
-              top: 8, right: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(55),
-                  borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          children: [
+            // Progress badge
+            if (progress != null)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(55),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    progress,
+                    style: const TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-                child: Text(progress,
-                    style: const TextStyle(
-                        fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white)),
               ),
-            ),
-          Center(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              if (imagePath != null)
-                Image.asset(imagePath, width: 80, height: 80, fit: BoxFit.contain)
-              else
-                Text(emoji, style: const TextStyle(fontSize: 52)),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(name,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (imagePath != null)
+                    Image.asset(
+                      imagePath,
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.contain,
+                    )
+                  else
+                    Text(emoji, style: const TextStyle(fontSize: 52)),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
-                        shadows: [Shadow(color: Colors.black26, blurRadius: 4)])),
+                        shadows: [Shadow(color: Colors.black26, blurRadius: 4)],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ]),
-          ),
-        ]),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -662,26 +1085,53 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: GestureDetector(
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => GamesScreen(onBack: () => Navigator.pop(context))),
+          MaterialPageRoute(
+            builder: (_) => GamesScreen(onBack: () => Navigator.pop(context)),
+          ),
         ).then((_) => _loadStats()),
         child: Container(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFF6C5CE7), Color(0xFFD63ECA)]),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF6C5CE7), Color(0xFFD63ECA)],
+            ),
             borderRadius: BorderRadius.circular(18),
-            boxShadow: const [BoxShadow(color: Color(0x446C5CE7), blurRadius: 16)],
+            boxShadow: const [
+              BoxShadow(color: Color(0x446C5CE7), blurRadius: 16),
+            ],
           ),
-          child: Row(children: [
-            const Text('🎮', style: TextStyle(fontSize: 34)),
-            const SizedBox(width: 12),
-            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Games',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
-              Text('11 fun games to play!',
-                  style: TextStyle(fontSize: 11, color: Colors.white70)),
-            ])),
-            Text('›', style: TextStyle(fontSize: 22, color: Colors.white.withAlpha(180))),
-          ]),
+          child: Row(
+            children: [
+              const Text('🎮', style: TextStyle(fontSize: 34)),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Games',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      '11 fun games to play!',
+                      style: TextStyle(fontSize: 11, color: Colors.white70),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '›',
+                style: TextStyle(
+                  fontSize: 22,
+                  color: Colors.white.withAlpha(180),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -696,7 +1146,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (_) => ParentDashboardScreen(onBack: () => Navigator.pop(context))),
+            builder: (_) =>
+                ParentDashboardScreen(onBack: () => Navigator.pop(context)),
+          ),
         ).then((_) => _loadStats()),
         child: Container(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -705,20 +1157,48 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white.withAlpha(22)),
           ),
-          child: Row(children: [
-            SvgPicture.asset('assets/images/parent_card.svg', width: 30, height: 30, fit: BoxFit.contain),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Parent Dashboard',
-                  style: TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white70)),
-              Text('View learning progress & manage settings',
-                  style: TextStyle(fontSize: 11, color: Colors.white.withAlpha(80))),
-            ])),
-            const Text('🔒', style: TextStyle(fontSize: 16)),
-            const SizedBox(width: 4),
-            Text('›', style: TextStyle(fontSize: 20, color: Colors.white.withAlpha(50))),
-          ]),
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                'assets/images/parent_card.svg',
+                width: 30,
+                height: 30,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Parent Dashboard',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    Text(
+                      'View learning progress & manage settings',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withAlpha(80),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Text('🔒', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 4),
+              Text(
+                '›',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white.withAlpha(50),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -733,17 +1213,22 @@ class _Star {
   final Color color;
 
   static const _palette = [
-    Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF),
-    Color(0xFFFFD93D), Color(0xFFFF9F43),
-    Color(0xFF4D96FF), Color(0xFFc471f5), Color(0xFF6BCB77),
+    Color(0xFFFFFFFF),
+    Color(0xFFFFFFFF),
+    Color(0xFFFFFFFF),
+    Color(0xFFFFD93D),
+    Color(0xFFFF9F43),
+    Color(0xFF4D96FF),
+    Color(0xFFc471f5),
+    Color(0xFF6BCB77),
   ];
 
   _Star(Random rng)
-      : x = rng.nextDouble(),
-        y = rng.nextDouble(),
-        size = 5 + rng.nextDouble() * 13,
-        duration = Duration(milliseconds: 1400 + rng.nextInt(3600)),
-        color = _palette[rng.nextInt(_palette.length)];
+    : x = rng.nextDouble(),
+      y = rng.nextDouble(),
+      size = 5 + rng.nextDouble() * 13,
+      duration = Duration(milliseconds: 1400 + rng.nextInt(3600)),
+      color = _palette[rng.nextInt(_palette.length)];
 }
 
 class _StarWidget extends StatefulWidget {
@@ -779,10 +1264,13 @@ class _StarWidgetState extends State<_StarWidget>
       animation: _anim,
       builder: (_, w) => Opacity(
         opacity: _anim.value,
-        child: Text(widget.star.size > 14 ? '★' : '✦',
-            style: TextStyle(
-                fontSize: widget.star.size,
-                color: widget.star.color)),
+        child: Text(
+          widget.star.size > 14 ? '★' : '✦',
+          style: TextStyle(
+            fontSize: widget.star.size,
+            color: widget.star.color,
+          ),
+        ),
       ),
     );
   }

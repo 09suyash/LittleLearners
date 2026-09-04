@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 // Fluent path builder — coordinates in 0-100 space, scaled to [w]×[h].
@@ -18,12 +19,125 @@ class _PB {
   Path build() => _p;
 }
 
-/// Returns the ordered guide stroke [Path]s for [letter], scaled to [sz].
-/// Each Path is one continuous stroke the child should trace.
+/// Returns the ordered guide stroke [Path]s for [letter] (uppercase or lowercase), scaled to [sz].
+/// Each Path is one continuous stroke the child should trace in order.
 List<Path> letterGuide(String letter, Size sz) {
+  if (letter.isEmpty) return [];
   final w = sz.width, h = sz.height;
   _PB b() => _PB(w, h);
 
+  // Lowercase letters
+  if (letter == letter.toLowerCase() && letter != letter.toUpperCase()) {
+    switch (letter) {
+      case 'a': return [
+        b().m(68, 48).c(65, 36, 28, 36, 28, 58).c(28, 80, 65, 80, 68, 68).build(),
+        b().m(68, 38).l(68, 80).build(),
+      ];
+      case 'b': return [
+        b().m(26, 12).l(26, 80).build(),
+        b().m(26, 48).c(48, 36, 76, 40, 76, 58).c(76, 78, 48, 80, 26, 80).build(),
+      ];
+      case 'c': return [
+        b().m(72, 46).c(68, 36, 28, 36, 28, 58).c(28, 80, 68, 80, 72, 70).build(),
+      ];
+      case 'd': return [
+        b().m(72, 48).c(68, 36, 26, 36, 26, 58).c(26, 80, 68, 80, 72, 68).build(),
+        b().m(72, 12).l(72, 80).build(),
+      ];
+      case 'e': return [
+        b().m(26, 58).l(74, 58).c(74, 36, 26, 36, 26, 58).c(26, 80, 70, 80, 74, 72).build(),
+      ];
+      case 'f': return [
+        b().m(68, 18).c(64, 10, 46, 10, 46, 26).l(46, 82).build(),
+        b().m(28, 46).l(66, 46).build(),
+      ];
+      case 'g': return [
+        b().m(70, 48).c(66, 36, 28, 36, 28, 58).c(28, 76, 66, 76, 70, 68).build(),
+        b().m(70, 38).l(70, 78).c(70, 94, 34, 94, 28, 82).build(),
+      ];
+      case 'h': return [
+        b().m(26, 12).l(26, 80).build(),
+        b().m(26, 50).c(34, 36, 74, 36, 74, 54).l(74, 80).build(),
+      ];
+      case 'i': return [
+        b().m(50, 42).l(50, 80).build(),
+        b().m(50, 22).l(50, 25).build(),
+      ];
+      case 'j': return [
+        b().m(58, 42).l(58, 80).c(58, 94, 28, 94, 24, 82).build(),
+        b().m(58, 22).l(58, 25).build(),
+      ];
+      case 'k': return [
+        b().m(28, 12).l(28, 80).build(),
+        b().m(68, 42).l(28, 62).build(),
+        b().m(36, 58).l(70, 80).build(),
+      ];
+      case 'l': return [
+        b().m(50, 12).l(50, 80).build(),
+      ];
+      case 'm': return [
+        b().m(20, 42).l(20, 80).build(),
+        b().m(20, 52).c(26, 36, 50, 36, 50, 54).l(50, 80).build(),
+        b().m(50, 52).c(56, 36, 80, 36, 80, 54).l(80, 80).build(),
+      ];
+      case 'n': return [
+        b().m(26, 42).l(26, 80).build(),
+        b().m(26, 52).c(34, 36, 74, 36, 74, 54).l(74, 80).build(),
+      ];
+      case 'o': return [
+        b().m(50, 38).c(24, 38, 24, 80, 50, 80).c(76, 80, 76, 38, 50, 38).build(),
+      ];
+      case 'p': return [
+        b().m(26, 42).l(26, 94).build(),
+        b().m(26, 48).c(48, 36, 76, 40, 76, 58).c(76, 78, 48, 80, 26, 80).build(),
+      ];
+      case 'q': return [
+        b().m(72, 48).c(68, 36, 26, 36, 26, 58).c(26, 80, 68, 80, 72, 68).build(),
+        b().m(72, 42).l(72, 94).l(82, 86).build(),
+      ];
+      case 'r': return [
+        b().m(30, 42).l(30, 80).build(),
+        b().m(30, 52).c(36, 38, 62, 38, 70, 46).build(),
+      ];
+      case 's': return [
+        b().m(68, 46).c(64, 36, 30, 36, 30, 48).c(30, 60, 70, 58, 70, 70).c(70, 80, 30, 80, 28, 70).build(),
+      ];
+      case 't': return [
+        b().m(48, 16).l(48, 72).c(48, 80, 62, 80, 68, 74).build(),
+        b().m(30, 38).l(66, 38).build(),
+      ];
+      case 'u': return [
+        b().m(28, 42).l(28, 70).c(28, 80, 72, 80, 72, 70).l(72, 42).build(),
+        b().m(72, 42).l(72, 80).build(),
+      ];
+      case 'v': return [
+        b().m(24, 42).l(50, 80).build(),
+        b().m(50, 80).l(76, 42).build(),
+      ];
+      case 'w': return [
+        b().m(16, 42).l(32, 80).build(),
+        b().m(32, 80).l(50, 54).build(),
+        b().m(50, 54).l(68, 80).build(),
+        b().m(68, 80).l(84, 42).build(),
+      ];
+      case 'x': return [
+        b().m(24, 42).l(76, 80).build(),
+        b().m(76, 42).l(24, 80).build(),
+      ];
+      case 'y': return [
+        b().m(24, 42).l(50, 70).build(),
+        b().m(76, 42).l(26, 94).build(),
+      ];
+      case 'z': return [
+        b().m(25, 42).l(75, 42).build(),
+        b().m(75, 42).l(25, 80).build(),
+        b().m(25, 80).l(75, 80).build(),
+      ];
+      default: return [];
+    }
+  }
+
+  // Uppercase letters
   switch (letter.toUpperCase()) {
     case 'A': return [
       b().m(50, 8).l(10, 92).build(),
@@ -155,5 +269,87 @@ List<Path> letterGuide(String letter, Size sz) {
       b().m(10, 92).l(90, 92).build(),
     ];
     default: return [];
+  }
+}
+
+/// Helper for validating kid's handwritten strokes step-by-step
+class StrokeValidator {
+  /// Validates whether the user's drawn points [userPoints] match the [expectedGuideMetric].
+  static bool validateStroke({
+    required List<Offset> userPoints,
+    required PathMetric guideMetric,
+    double tolerance = 48.0,
+  }) {
+    if (userPoints.length < 2) return false;
+
+    final guideLen = guideMetric.length;
+
+    // Small dot (e.g., top dot of 'i' or 'j')
+    if (guideLen < 20) {
+      final dotTangent = guideMetric.getTangentForOffset(0);
+      if (dotTangent == null) return true;
+      final dist = (userPoints.first - dotTangent.position).distance;
+      return dist <= tolerance * 1.3;
+    }
+
+    // Sample guide checkpoints
+    const numCheckpoints = 20;
+    final checkpoints = <Offset>[];
+    for (int i = 0; i <= numCheckpoints; i++) {
+      final t = guideMetric.getTangentForOffset(i / numCheckpoints * guideLen);
+      if (t != null) {
+        checkpoints.add(t.position);
+      }
+    }
+    if (checkpoints.isEmpty) return false;
+
+    // 1. Start point proximity check (must start near the guide start)
+    final startDist = (userPoints.first - checkpoints.first).distance;
+    if (startDist > tolerance * 1.25) {
+      return false;
+    }
+
+    // 2. End point proximity check (must end near the guide end)
+    final endDist = (userPoints.last - checkpoints.last).distance;
+    if (endDist > tolerance * 1.35) {
+      return false;
+    }
+
+    // 3. Direction and checkpoint progression
+    int checkpointIdx = 0;
+    for (final pt in userPoints) {
+      if (checkpointIdx < checkpoints.length) {
+        final d = (pt - checkpoints[checkpointIdx]).distance;
+        if (d <= tolerance) {
+          checkpointIdx++;
+        }
+      }
+    }
+
+    // Must reach at least 60% of checkpoints in forward progression
+    final requiredVisited = (checkpoints.length * 0.60).ceil();
+    if (checkpointIdx < requiredVisited) {
+      return false;
+    }
+
+    // 4. Mean deviation check (user stroke shouldn't stray wildly)
+    double totalDev = 0;
+    final sampleStep = max(1, userPoints.length ~/ 15);
+    int samples = 0;
+    for (int i = 0; i < userPoints.length; i += sampleStep) {
+      final u = userPoints[i];
+      double minDist = double.infinity;
+      for (final cp in checkpoints) {
+        final d = (u - cp).distance;
+        if (d < minDist) minDist = d;
+      }
+      totalDev += minDist;
+      samples++;
+    }
+    if (samples > 0 && (totalDev / samples) > tolerance * 1.2) {
+      return false;
+    }
+
+    return true;
   }
 }

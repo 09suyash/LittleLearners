@@ -425,7 +425,11 @@ class _MazeRunnerScreenState extends State<MazeRunnerScreen> {
     final maze = _current!;
     final endless = _endlessLevel;
     final hasNext = endless != null ? true : maze.id < 6;
-    return Padding(
+    final stars = _totalStars > 0
+        ? (_collected == _totalStars ? '⭐⭐⭐' : _collected >= (_totalStars * 0.5) ? '⭐⭐' : (_collected > 0 ? '⭐' : '☆☆☆'))
+        : '⭐⭐⭐';
+
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Container(
@@ -444,7 +448,7 @@ class _MazeRunnerScreenState extends State<MazeRunnerScreen> {
             Text('$_moves moves • $_collected/$_totalStars stars collected',
                 style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(204))),
             const SizedBox(height: 4),
-            const Text('⭐⭐⭐', style: TextStyle(fontSize: 24, letterSpacing: 4)),
+            Text(stars, style: const TextStyle(fontSize: 24, letterSpacing: 4)),
           ]),
         ),
         const SizedBox(height: 20),

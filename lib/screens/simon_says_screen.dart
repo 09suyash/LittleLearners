@@ -158,6 +158,13 @@ class _SimonSaysScreenState extends State<SimonSaysScreen> {
   Future<void> _onLost() async {
     _playToken++;
     await _saveBest();
+    final ratio = _target > 0 ? _round / _target : 0.0;
+    final pct = (ratio * 100).round();
+    final starsEarned = pct >= 80 ? 8 : (pct >= 50 ? 5 : (_round > 1 ? 2 : 0));
+    if (starsEarned > 0) {
+      await AppState.addStars(starsEarned);
+    }
+    if (!mounted) return;
     setState(() => _state = _GameState.lost);
   }
 
@@ -398,6 +405,9 @@ class _SimonSaysScreenState extends State<SimonSaysScreen> {
   }
 
   Widget _buildLostBanner() {
+    final ratio = _target > 0 ? _round / _target : 0.0;
+    final stars = ratio >= 0.7 ? '⭐⭐' : (ratio >= 0.3 ? '⭐' : '☆☆☆');
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -416,6 +426,8 @@ class _SimonSaysScreenState extends State<SimonSaysScreen> {
             const SizedBox(height: 4),
             Text('Best: round $_bestRound',
                 style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(150))),
+            const SizedBox(height: 4),
+            Text(stars, style: const TextStyle(fontSize: 24, letterSpacing: 4)),
           ]),
         ),
         const SizedBox(height: 20),

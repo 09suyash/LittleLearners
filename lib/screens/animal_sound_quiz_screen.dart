@@ -197,7 +197,14 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: GestureDetector(
-                onTap: () { _tts.stop(); widget.onBack(); },
+                onTap: () {
+                  _tts.stop();
+                  if (_state == _GameState.question) {
+                    setState(() => _state = _GameState.idle);
+                  } else {
+                    widget.onBack();
+                  }
+                },
                 child: Container(
                   width: 40, height: 40,
                   decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
@@ -211,7 +218,14 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
           child: Row(children: [
             GestureDetector(
-              onTap: () { _tts.stop(); widget.onBack(); },
+              onTap: () {
+                _tts.stop();
+                if (_state == _GameState.question) {
+                  setState(() => _state = _GameState.idle);
+                } else {
+                  widget.onBack();
+                }
+              },
               child: Container(
                 width: 40, height: 40,
                 decoration: BoxDecoration(color: Colors.white.withAlpha(18), borderRadius: BorderRadius.circular(10)),
@@ -225,16 +239,8 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
               child: Text('Animal Sound Quiz',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
             ),
-            GestureDetector(
-              onTap: () {
-                if (_state != _GameState.question) {
-                  setState(() {
-                    _diffIdx = (_diffIdx + 1) % 3;
-                    _state = _GameState.idle;
-                  });
-                }
-              },
-              child: Container(
+            if (_state == _GameState.question)
+              Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(18),
@@ -244,7 +250,6 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
                 child: Text(_difficulties[_diffIdx],
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFFFD93D))),
               ),
-            ),
           ]),
         );
       },
@@ -252,25 +257,188 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
   }
 
   Widget _buildStartPrompt() {
-    return Center(
-      child: TapScale(
-        onTap: _startQuiz,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFF56AB2F), Color(0xFFA8E063)]),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [BoxShadow(color: Color(0x4456AB2F), blurRadius: 18)],
+    final levels = [
+      {
+        'title': 'Easy',
+        'subtitle': '4 animals • Distinct sounds',
+        'badge': '🐣 Beginner',
+        'icon': '🐣',
+        'colors': [const Color(0xFF43A047), const Color(0xFF66BB6A)],
+        'shadow': const Color(0x4443A047),
+      },
+      {
+        'title': 'Medium',
+        'subtitle': '4 animals • Same animal group',
+        'badge': '🦊 Tricky',
+        'icon': '🦊',
+        'colors': [const Color(0xFFFF9800), const Color(0xFFFFB74D)],
+        'shadow': const Color(0x44FF9800),
+      },
+      {
+        'title': 'Hard',
+        'subtitle': '6 animals • 6s Speed Timer ⏱️',
+        'badge': '🦁 Expert',
+        'icon': '🦁',
+        'colors': [const Color(0xFFE53935), const Color(0xFFFF7043)],
+        'shadow': const Color(0x44E53935),
+      },
+    ];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(16),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white.withAlpha(28)),
+            ),
+            child: Row(
+              children: [
+                const Text('🔊', style: TextStyle(fontSize: 36)),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Select Level',
+                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Choose a level to start listening and guessing!',
+                        style: TextStyle(fontSize: 12, color: Colors.white.withAlpha(180)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: const Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('🔊', style: TextStyle(fontSize: 44)),
-            SizedBox(height: 8),
-            Text('Listen and Tap!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
-            SizedBox(height: 4),
-            Text("We'll make an animal's sound — you find it!",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.white70)),
-          ]),
+          const SizedBox(height: 16),
+          for (int i = 0; i < levels.length; i++) ...[
+            _buildLevelCard(
+              index: i,
+              title: levels[i]['title'] as String,
+              subtitle: levels[i]['subtitle'] as String,
+              badge: levels[i]['badge'] as String,
+              icon: levels[i]['icon'] as String,
+              colors: levels[i]['colors'] as List<Color>,
+              shadow: levels[i]['shadow'] as Color,
+            ),
+            if (i < levels.length - 1) const SizedBox(height: 14),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLevelCard({
+    required int index,
+    required String title,
+    required String subtitle,
+    required String badge,
+    required String icon,
+    required List<Color> colors,
+    required Color shadow,
+  }) {
+    return TapScale(
+      onTap: () {
+        _sfx.play(SoundType.tap);
+        setState(() => _diffIdx = index);
+        _startQuiz();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: colors,
+          ),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: shadow,
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(45),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(icon, style: const TextStyle(fontSize: 30)),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withAlpha(35),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          badge,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withAlpha(220),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(45),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: 26,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -398,8 +566,11 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
   }
 
   Widget _buildFinishedBanner() {
-    final perfect = _score == _totalQuestions;
-    return Padding(
+    final pct = _totalQuestions > 0 ? (_score / _totalQuestions * 100).round() : 0;
+    final stars = pct >= 80 ? '⭐⭐⭐' : pct >= 50 ? '⭐⭐' : (pct > 0 ? '⭐' : '☆☆☆');
+    final emoji = pct >= 80 ? '🏆' : pct >= 50 ? '🎉' : (pct > 0 ? '👍' : '💪');
+
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Container(
@@ -410,15 +581,18 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
             boxShadow: const [BoxShadow(color: Color(0x44FFD93D), blurRadius: 20)],
           ),
           child: Column(children: [
-            Text(perfect ? '🏆' : '🎉', style: const TextStyle(fontSize: 40)),
+            Text(emoji, style: const TextStyle(fontSize: 40)),
             const SizedBox(height: 4),
             Text('Score: $_score / $_totalQuestions',
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)),
             const SizedBox(height: 2),
+            Text('Level: ${_difficulties[_diffIdx]}',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white.withAlpha(230))),
+            const SizedBox(height: 2),
             Text('Best: $_bestScore / $_bestTotal',
                 style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(204))),
             const SizedBox(height: 4),
-            const Text('⭐⭐⭐', style: TextStyle(fontSize: 24, letterSpacing: 4)),
+            Text(stars, style: const TextStyle(fontSize: 24, letterSpacing: 4)),
           ]),
         ),
         const SizedBox(height: 20),
@@ -434,6 +608,26 @@ class _AnimalSoundQuizScreenState extends State<AnimalSoundQuizScreen> {
               elevation: 6,
             ),
             child: const Text('🔄 Play Again', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              setState(() => _state = _GameState.idle);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2d6a4f),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Colors.white30),
+              ),
+              elevation: 3,
+            ),
+            child: const Text('🎮 Choose Level', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
           ),
         ),
         const SizedBox(height: 10),

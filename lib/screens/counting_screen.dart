@@ -331,8 +331,9 @@ class _CountingScreenState extends State<CountingScreen>
 
   Widget _buildResult() {
     final pct = (_score / _roundSize * 100).round();
-    final stars = pct == 100 ? '⭐⭐⭐' : pct >= 70 ? '⭐⭐' : '⭐';
-    final title = pct == 100 ? 'Perfect Counter!' : pct >= 70 ? 'Great Counting!' : 'Keep Practising!';
+    final stars = pct >= 80 ? '⭐⭐⭐' : pct >= 50 ? '⭐⭐' : (pct > 0 ? '⭐' : '☆☆☆');
+    final title = pct >= 80 ? 'Perfect Counter!' : pct >= 50 ? 'Great Counting!' : (pct > 0 ? 'Keep Practising!' : 'Try Again!');
+    final emoji = pct >= 80 ? '🏆' : pct >= 50 ? '🎉' : (pct > 0 ? '👍' : '💪');
 
     return Container(
       decoration: const BoxDecoration(
@@ -346,7 +347,7 @@ class _CountingScreenState extends State<CountingScreen>
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(pct == 100 ? '🏆' : '🎉', style: const TextStyle(fontSize: 56)),
+              Text(emoji, style: const TextStyle(fontSize: 56)),
               const SizedBox(height: 10),
               Text(title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
               const SizedBox(height: 6),
