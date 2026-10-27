@@ -19,22 +19,52 @@ Little Learners is a Flutter kids-learning app targeting ages 2–10. It bundles
 
 ---
 
-## Project Structure
+## Project Structure (Feature-First Architecture)
 
 ```
 lib/
-├── main.dart                  # App entry point, MainShell widget
-├── models/
-│   ├── letter_data.dart       # LetterData model + 26-letter constant list
-│   └── story_data.dart        # StoryData / StoryVersion / StoryPage models + 8 stories
-├── screens/
-│   ├── home_screen.dart       # Home / dashboard screen
-│   ├── abc_screen.dart        # ABC & Phonics mini-app
-│   ├── math_screen.dart       # Math Quiz mini-app
-│   └── stories_screen.dart    # Moral Stories mini-app
-└── utils/
-    ├── fx.dart                # Shared UI widgets: TapScale, ConfettiOverlay
-    └── tts_service.dart       # Singleton TTS wrapper
+├── main.dart                          # App entry point, MainShell widget
+├── core/                              # Cross-cutting singletons, widgets & state
+│   ├── core.dart                      # Barrel export for all core utilities
+│   ├── services/
+│   │   ├── tts_service.dart           # Singleton TTS wrapper
+│   │   ├── sound_service.dart         # Singleton AudioPlayer sound fx
+│   │   ├── badge_service.dart         # Badge milestone service
+│   │   ├── daily_challenge_service.dart # Deterministic challenge & streak engine
+│   │   └── tts_navigator_observer.dart# Stops audio on route push/pop
+│   ├── storage/
+│   │   ├── storage_keys.dart          # Centralized constants for all storage keys
+│   │   └── progress_repository.dart   # Repository layer for scores, profile & persistence
+│   ├── state/
+│   │   └── app_state.dart             # Global state (stars, mascot, XP)
+│   └── widgets/
+│       └── fx.dart                    # TapScale, ConfettiOverlay, LevelBanner
+└── features/                          # Grouped by Domain / Feature
+    ├── splash/screens/                # SplashScreen
+    ├── home/
+    │   ├── screens/                   # HomeScreen (lightweight coordinator)
+    │   └── widgets/                   # StarFieldBackground, HomeStatsRow, HomeHeader, ActivityCard
+    ├── abc/
+    │   ├── models/                    # LetterData, LetterStrokeData, QuizQuestion
+    │   ├── screens/                   # AbcScreen (coordinator)
+    │   └── widgets/                   # LetterCard, LetterDetailSheet, LetterTraceCanvas, AbcQuizView, AbcResultView
+    ├── math/
+    │   ├── models/                    # MathModels (enums, MathQuestion, MathLeaderboardEntry)
+    │   ├── screens/                   # MathScreen (coordinator)
+    │   └── widgets/                   # MathModeSelectView, MathSettingsView, MathQuizView, MathBlitzView, MathResultView
+    ├── stories/
+    │   ├── models/                    # StoryData, StoryVersion, StoryPage
+    │   ├── repositories/              # StoryRepository (ChangeNotifier / JSON storage)
+    │   └── screens/                   # StoriesScreen, ManageStoriesScreen
+    ├── gamification/screens/          # BadgesScreen, DailyChallengeScreen
+    ├── parent_dashboard/screens/      # ParentDashboardScreen
+    └── games/                         # Mini-games hub & game activities
+        ├── coloring_book/             # ColoringModels, ColoringScenesData, ColoringCanvas, ColoringPaletteBar, ColoringSceneSelector
+        ├── models/                    # AnimalData, MazeData, ShapeData
+        └── screens/                   # ColoringBookScreen, GamesScreen, MemoryGame,
+                                       # Puzzle, SimonSays, BubblePop, ShapeSorter,
+                                       # WhackAMole, MazeRunner, AnimalFeeding,
+                                       # Archery, Racing, WordBuilder, etc.
 ```
 
 ---

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'screens/home_screen.dart';
-import 'screens/abc_screen.dart';
-import 'screens/math_screen.dart';
-import 'screens/stories_screen.dart';
-import 'screens/splash_screen.dart';
-import 'utils/tts_navigator_observer.dart';
+import 'features/home/screens/home_screen.dart';
+import 'features/abc/screens/abc_screen.dart';
+import 'features/math/screens/math_screen.dart';
+import 'features/stories/screens/stories_screen.dart';
+import 'features/splash/screens/splash_screen.dart';
+import 'core/core.dart';
 
 
 void main() {
