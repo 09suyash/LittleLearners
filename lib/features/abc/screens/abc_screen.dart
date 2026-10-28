@@ -76,7 +76,7 @@ class _AbcScreenState extends State<AbcScreen> {
 
   @override
   void dispose() {
-    _tts.dispose();
+    _tts.stop();
     super.dispose();
   }
 
@@ -205,7 +205,10 @@ class _AbcScreenState extends State<AbcScreen> {
         screen = LetterTraceScreen(
           idx: _selectedIdx ?? 0,
           initialLowercase: _traceLowercase,
-          onBack: () => setState(() => _view = AbcView.grid),
+          onBack: () {
+            _tts.stop();
+            setState(() => _view = AbcView.grid);
+          },
         );
         break;
       case AbcView.quiz:
@@ -241,9 +244,17 @@ class _AbcScreenState extends State<AbcScreen> {
         screen = _buildGrid();
         break;
     }
-    return Stack(
-      children: [
-        screen,
+    return PopScope(
+      canPop: _view == AbcView.grid,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _view != AbcView.grid) {
+          _tts.stop();
+          setState(() => _view = AbcView.grid);
+        }
+      },
+      child: Stack(
+        children: [
+          screen,
         Positioned(
           top: -30,
           right: -30,
@@ -270,8 +281,9 @@ class _AbcScreenState extends State<AbcScreen> {
           ),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildGrid() {
     return Container(

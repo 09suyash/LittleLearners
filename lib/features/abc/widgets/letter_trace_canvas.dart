@@ -99,6 +99,7 @@ class _LetterTraceScreenState extends State<LetterTraceScreen>
     _completionTimer?.cancel();
     _guide.dispose();
     _shakeCtrl.dispose();
+    _tts.stop();
     super.dispose();
   }
 

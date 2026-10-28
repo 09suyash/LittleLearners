@@ -62,7 +62,7 @@ class _MathScreenState extends State<MathScreen> {
 
   @override
   void dispose() {
-    _tts.dispose();
+    _tts.stop();
     super.dispose();
   }
 
@@ -469,9 +469,17 @@ class _MathScreenState extends State<MathScreen> {
         break;
     }
 
-    return Stack(
-      children: [
-        screen,
+    return PopScope(
+      canPop: _view == MathView.modeSelect,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _view != MathView.modeSelect) {
+          _tts.stop();
+          setState(() => _view = MathView.modeSelect);
+        }
+      },
+      child: Stack(
+        children: [
+          screen,
         Positioned(
           top: -30,
           right: -30,
@@ -498,6 +506,7 @@ class _MathScreenState extends State<MathScreen> {
           ),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 }

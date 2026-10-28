@@ -41,7 +41,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   @override
   void dispose() {
     _timer?.cancel();
-    _tts.dispose();
+    _tts.stop();
     super.dispose();
   }
 

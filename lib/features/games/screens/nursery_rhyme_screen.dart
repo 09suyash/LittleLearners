@@ -101,6 +101,7 @@ class _NurseryRhymeScreenState extends State<NurseryRhymeScreen> {
 
   @override
   void dispose() {
+    _player.stop();
     _player.dispose();
     _scrollCtrl.dispose();
     super.dispose();

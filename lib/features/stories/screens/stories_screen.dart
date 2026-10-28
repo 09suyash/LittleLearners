@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/story_data.dart';
 import '../repositories/story_repository.dart';
 import 'package:zoodles/core/core.dart';
@@ -20,7 +21,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
   StoryData? _openStory;
   int _page = 0;
   bool _playing = false;
-  double _speed = 0.5;
+  double _speed = 0.75;
   bool _autoAdvance = false;
   final Set<int> _done = {};
   List<StoryData> _stories = [];
@@ -34,6 +35,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
   void initState() {
     super.initState();
     _repo.addListener(_onRepoChanged);
+    _loadPreferences();
     _loadStories();
     _loadDone();
     _tts.setPageCompletionHandler(_onSpeechDone);
@@ -46,6 +48,16 @@ class _StoriesScreenState extends State<StoriesScreen> {
   }
 
   void _onRepoChanged() => _loadStories();
+
+  Future<void> _loadPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedSpeed = prefs.getDouble('story_speed');
+      if (savedSpeed != null && mounted) {
+        setState(() => _speed = savedSpeed);
+      }
+    } catch (_) {}
+  }
 
   Future<void> _loadStories() async {
     try {
@@ -75,7 +87,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
   @override
   void dispose() {
     _repo.removeListener(_onRepoChanged);
-    _tts.dispose();
+    _tts.stop();
     super.dispose();
   }
 
@@ -112,7 +124,9 @@ class _StoriesScreenState extends State<StoriesScreen> {
 
   void _stopSpeech() {
     _tts.stop();
-    setState(() { _playing = false; _highlightIdx = -1; });
+    if (mounted) {
+      setState(() { _playing = false; _highlightIdx = -1; });
+    }
   }
 
   Future<void> _goPage(int dir, {bool autoPlay = false}) async {
@@ -169,7 +183,16 @@ class _StoriesScreenState extends State<StoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _openStory == null ? _buildGrid() : _buildReader();
+    return PopScope(
+      canPop: _openStory == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _openStory != null) {
+          _stopSpeech();
+          setState(() { _openStory = null; });
+        }
+      },
+      child: _openStory == null ? _buildGrid() : _buildReader(),
+    );
   }
 
   // ── Story Grid ──
@@ -505,26 +528,65 @@ class _StoriesScreenState extends State<StoriesScreen> {
                       ),
                     ),
                     const SizedBox(width: 11),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(_playing ? (_lang == 'hi' ? '🎙️ सुन रहे हैं…' : '🎙️ Narrating…') : (_lang == 'hi' ? '▶ सुनने के लिए दबाएँ' : '▶ Tap to listen'),
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
-                      Text(_lang == 'hi' ? 'हिंदी आवाज़ उपलब्ध' : 'Hindi & English voice',
-                          style: const TextStyle(fontSize: 11, color: Colors.white60)),
-                    ])),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: _showVoicePicker,
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(_playing ? (_lang == 'hi' ? '🎙️ सुन रहे हैं…' : '🎙️ Narrating…') : (_lang == 'hi' ? '▶ सुनने के लिए दबाएँ' : '▶ Tap to listen'),
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  _tts.getActiveVoiceName(_lang) ?? (_lang == 'hi' ? 'हिंदी आवाज़' : 'Natural Voice'),
+                                  style: const TextStyle(fontSize: 11, color: Colors.white70),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.tune_rounded, size: 12, color: Colors.white60),
+                            ],
+                          ),
+                        ]),
+                      ),
+                    ),
                   ]),
                   const SizedBox(height: 10),
-                  // Speed buttons on their own row — prevents overflow on narrow screens
-                  Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  // Voice picker button & calibrated speed buttons
+                  Row(children: [
+                    GestureDetector(
+                      onTap: _showVoicePicker,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(16),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white.withAlpha(35), width: 1.0),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.record_voice_over_rounded, size: 12, color: Color(0xFFc4855a)),
+                            const SizedBox(width: 4),
+                            Text(
+                              _lang == 'hi' ? 'आवाज़' : 'Voice',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
                     Text(_lang == 'hi' ? 'गति:' : 'Speed:',
                         style: const TextStyle(fontSize: 11, color: Colors.white60)),
                     const SizedBox(width: 6),
                     _spdBtn('0.5×', 0.5),
                     const SizedBox(width: 4),
-                    _spdBtn('0.7×', 0.7),
+                    _spdBtn('0.75×', 0.75),
                     const SizedBox(width: 4),
                     _spdBtn('1×', 1.0),
                     const SizedBox(width: 4),
-                    _spdBtn('1.3×', 1.3),
+                    _spdBtn('1.25×', 1.25),
                   ]),
                 ]),
               ),
@@ -680,10 +742,14 @@ class _StoriesScreenState extends State<StoriesScreen> {
   }
 
   Widget _spdBtn(String label, double spd) {
-    final sel = _speed == spd;
+    final sel = (_speed - spd).abs() < 0.01;
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         setState(() => _speed = spd);
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setDouble('story_speed', spd);
+        } catch (_) {}
         if (_playing) { _stopSpeech(); _startSpeech(); }
       },
       child: Container(
@@ -695,6 +761,131 @@ class _StoriesScreenState extends State<StoriesScreen> {
         ),
         child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: sel ? Colors.white : Colors.white60)),
       ),
+    );
+  }
+
+  void _showVoicePicker() {
+    final voices = _tts.getAvailableVoices(lang: _lang);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E140F),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final currentActive = _tts.getActiveVoice(_lang);
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _lang == 'hi' ? 'कहानी सुनाने की आवाज़' : 'Storytelling Voice',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white70),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      _lang == 'hi'
+                          ? 'स्वाभाविक और स्पष्ट कहानी वाचन के लिए आवाज़ चुनें'
+                          : 'Select a natural voice for warm storytelling',
+                      style: const TextStyle(fontSize: 12, color: Colors.white60),
+                    ),
+                    const SizedBox(height: 14),
+                    if (voices.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Center(
+                          child: Text(
+                            _lang == 'hi' ? 'सिस्टम डिफ़ॉल्ट आवाज़ सक्रिय है' : 'System default voice is active',
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                      )
+                    else
+                      Flexible(
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: voices.length,
+                          separatorBuilder: (_, _) => const SizedBox(height: 8),
+                          itemBuilder: (context, idx) {
+                            final v = voices[idx];
+                            final isSel = currentActive != null && currentActive['name'] == v['name'];
+                            final label = TtsService.friendlyVoiceName(v);
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: isSel ? const Color(0xFF7B3F00).withAlpha(120) : Colors.white.withAlpha(12),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: isSel ? const Color(0xFFc4855a) : Colors.white.withAlpha(25),
+                                  width: isSel ? 1.5 : 1.0,
+                                ),
+                              ),
+                              child: ListTile(
+                                dense: true,
+                                title: Text(
+                                  label,
+                                  style: TextStyle(
+                                    fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  v['name'] ?? '',
+                                  style: const TextStyle(fontSize: 10, color: Colors.white54),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.volume_up, color: Colors.white70, size: 20),
+                                      tooltip: 'Preview',
+                                      onPressed: () async {
+                                        await _tts.setVoice(_lang, v);
+                                        await _tts.speak(
+                                          _lang == 'hi' ? 'नमस्ते! कहानी शुरू करें?' : 'Hello! Ready for a story?',
+                                          lang: _lang,
+                                        );
+                                      },
+                                    ),
+                                    if (isSel)
+                                      const Icon(Icons.check_circle, color: Color(0xFFc4855a), size: 20),
+                                  ],
+                                ),
+                                onTap: () async {
+                                  await _tts.setVoice(_lang, v);
+                                  setModalState(() {});
+                                  if (mounted) setState(() {});
+                                  if (_playing) {
+                                    _stopSpeech();
+                                    _startSpeech();
+                                  }
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
